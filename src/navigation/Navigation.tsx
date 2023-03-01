@@ -15,7 +15,7 @@ const Navigation = () => {
       <Routes>
         {userToken === null?(
           <>
-                   <Route path="/Login" element={<Login/>} />
+                   <Route path="*" element={<Login/>} />
 
           </>
         ):(

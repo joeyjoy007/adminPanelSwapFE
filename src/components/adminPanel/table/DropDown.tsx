@@ -24,7 +24,6 @@ const DropDown1 = ({record}) => {
       key:e._id
     }
   })
-  console.log("YU",y);
   
 
   const items: MenuProps['items'] = y
@@ -33,7 +32,7 @@ const DropDown1 = ({record}) => {
     <Dropdown menu={{ items }}>
     <a onClick={(e) => e.preventDefault()}>
       <Space>
-        Select 
+        Select s
         {/* <DownOutlined /> */}
       </Space>
     </a>

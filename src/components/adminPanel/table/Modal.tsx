@@ -5,7 +5,6 @@ import SearchEmployee from './SearchEmployee';
 
 const Modal1: React.FC | any = ({name,record}:any) => {
   const [open, setOpen] = useState(false);
-  console.log("Modalsss",name,record);
 
   return (
     <>

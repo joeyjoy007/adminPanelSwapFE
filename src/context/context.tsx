@@ -37,8 +37,17 @@ export const AuthProvider:any = ({ children }:any) => {
                 localStorage.setItem('userToken',response.payload.token)
                 localStorage.setItem('userRole',response.payload.admin.role)
                 setIsLoading(false);
-            } else {
-                setIsLoading(false);
+            } else if(response.status === 2 ){
+                setUserInfo(response);
+                console.log("Context Response==>",response);
+                setUserToken(response.payload.token);
+                setUserRole(response.payload.employee.role);
+                setUserInfo(JSON.stringify(response));
+                localStorage.setItem('userInfo',JSON.stringify(response))
+                localStorage.setItem('userToken',response.payload.token)
+                localStorage.setItem('userRole',response.payload.employee.role)
+            }else{
+                setIsLoading(false)
             }
         } catch (error) {
             setIsLoading(false);

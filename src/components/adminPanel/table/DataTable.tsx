@@ -1,8 +1,9 @@
 import React, { useContext, useState } from 'react';
-import { Button, Form, Input, InputNumber, Popconfirm, Table, Typography } from 'antd';
+import { Button, Form, Input, InputNumber, Popconfirm, Table, Typography, message } from 'antd';
 import DropDown1 from './DropDown';
-import { createAssignWork, getAssignWork, updateAssignWork } from '../../../server/workAssign/workAssign';
+import { createAssignWork, deleteWork, getAssignWork, updateAssignWork } from '../../../server/workAssign/workAssign';
 import { AuthContext } from '../../../context/context';
+import UploadF from '../../helpers/Upload';
 
 interface Item {
   _id: number;
@@ -86,7 +87,6 @@ const DataTable: React.FC = () => {
   const isEditing = (record: Item) => record._id === editingKey;
 
   const edit = (record: Partial<Item> & { _id: React.Key }) => {
-    console.log("RECORDDDD",record)
     form.setFieldsValue({ item: '', script: '', voice_over: '',video:'',thumbnail:'' ,...record });
     setEditingKey(record._id);
   
@@ -118,9 +118,17 @@ const {fetchAgain} = useContext(AuthContext);
       const work = updateAssignWork({itemId:record._id,item:row.item}).then((response: any)=>{
         console.log("updated item==> ",response)
         setEditingKey(0)
+        messageApi.success({
+          type:"success",
+          content:"Work Saved"
+         });
+        
 
       }).catch((err:any)=>{
-        console.log("error==> ",err.message);
+        messageApi.error({
+          type:"error",
+          content:"Work not saved"
+         });
       })
 
 
@@ -177,7 +185,12 @@ const {fetchAgain} = useContext(AuthContext);
       dataIndex: "script",
       render: (_: any, record: any) => {
         const filtWork = record?.workBookings?.filter((e:any)=>e?.selectedWork?.name === "Script");
-        return <p>{filtWork?.[0]?filtWork[0].status:'Null'}</p>
+        return (
+          <>
+          <p style={{color:filtWork?.[0]?.status === 'pending'?"red":filtWork?.[0]?.status==='inProgress'?'orange':filtWork?.[0]?.status==='completed'?'green':'black'}}>{filtWork?.[0]?filtWork[0].status:'Null'}</p>
+          <UploadF/>
+          </>
+        )
       },
       key: "script"
     },
@@ -187,7 +200,7 @@ const {fetchAgain} = useContext(AuthContext);
       dataIndex: "script",
       render: (_: any, record: any) => {
         const filtWork = record?.workBookings?.filter((e:any)=>e.selectedWork.name === "Voice over");
-        return <p>{filtWork?.[0]?filtWork[0].status:'Null'}</p>
+        return <p style={{color:filtWork?.[0]?.status === 'pending'?"red":filtWork?.[0]?.status==='inProgress'?'orange':filtWork?.[0]?.status==='completed'?'green':'black'}}>{filtWork?.[0]?filtWork[0].status:'Null'}</p>
       },
       key: "voice_over"
     },
@@ -197,7 +210,7 @@ const {fetchAgain} = useContext(AuthContext);
       dataIndex: "video",
       render: (_: any, record: any) => {
         const filtWork = record?.workBookings?.filter((e:any)=>e.selectedWork.name === "Video");
-        return <p>{filtWork?.[0]?filtWork[0].status:'Null'}</p>
+        return <p style={{color:filtWork?.[0]?.status === 'pending'?"red":filtWork?.[0]?.status==='inProgress'?'orange':filtWork?.[0]?.status==='completed'?'green':'black'}}>{filtWork?.[0]?filtWork[0].status:'Null'}</p>
       },
       key: "video"
     },
@@ -207,7 +220,7 @@ const {fetchAgain} = useContext(AuthContext);
       dataIndex: "thumbnail",
       render: (_: any, record: any) => {
         const filtWork = record?.workBookings?.filter((e:any)=>e.selectedWork.name === "Thumbnail");
-        return <p>{filtWork?.[0]?filtWork[0].status:'Null'}</p>
+        return <p style={{color:filtWork?.[0]?.status === 'pending'?"red":filtWork?.[0]?.status==='inProgress'?'orange':filtWork?.[0]?.status==='completed'?'green':'black'}}>{filtWork?.[0]?filtWork[0].status:'Null'}</p>
       },
       key: "voice_over"
     },
@@ -230,7 +243,7 @@ const {fetchAgain} = useContext(AuthContext);
           <Typography.Link disabled={editingKey !== 0} onClick={() => edit(record)}>
             Edit
           </Typography.Link>
-          <Typography.Link  disabled={editingKey !== 0} onClick={() => deletes(record)}>
+          <Typography.Link  disabled={editingKey !== 0} onClick={() => deleteAllWork(record)}>
             Delete
           </Typography.Link>
          </div>
@@ -240,10 +253,27 @@ const {fetchAgain} = useContext(AuthContext);
    
   ];
 
-  const deletes = (record: Item)=>{
-
-    const newData = data.filter((item) => item._id !== record._id);
-    setData(newData);
+  const deleteAllWork =async (record: Item)=>{
+    try {
+      const deleteItem =await deleteWork({_id:record._id}).then((response: any)=>{
+        console.log("Delete Response ==> ",response);
+        setCount(count-1)
+        messageApi.success({
+          type:"success",
+          content:"Work deleted"
+         });
+      }).catch((error)=>{
+        messageApi.error({
+          type:"error",
+          content:"Internal server error"
+         });;
+      })
+    } catch (error) {
+      messageApi.error({
+        type:"error",
+        content:"Work not deleted "
+       });;
+    }
   }
 
 
@@ -266,9 +296,16 @@ const {fetchAgain} = useContext(AuthContext);
   const handleAdd = ()=>{
     const createWork = createAssignWork().then((response: any)=>{
       console.log("response add ==>",response)
+      messageApi.success({
+        type:"success",
+        content:"Work Added"
+       });
       // setData(response.payload)
     }).catch((err)=>{
-      console.log("error ==>",err.message);
+      messageApi.error({
+        type:"error",
+        content:"Work not added "
+       });;
     })
 
     const newData :Item = {
@@ -293,28 +330,33 @@ const {fetchAgain} = useContext(AuthContext);
   //   setDataSource([...dataSource, newData]);
   //   setCount(count + 1);
   // };
+  const [messageApi, contextHolder] = message.useMessage();
 
   return (
-    <Form form={form} component={false}>
-         <Button onClick={handleAdd} type="primary" style={{ marginBottom: 16 }}>
-        Add a row
-      </Button>
-      <Table
-        components={{
-          body: {
-            cell: EditableCell,
-          },
-        }}
-        bordered
-        dataSource={data}
-        columns={mergedColumns}
-        rowClassName="editable-row"
-        pagination={{
-          onChange: cancel,
-        }}
-        expandable={{ expandedRowRender: (record: Item) => <p>{record.script}</p> }}
-      />
-    </Form>
+<>
+{contextHolder}
+<Form form={form} component={false}>
+      
+      <Button onClick={handleAdd} type="primary" style={{ marginBottom: 16 }}>
+     Add a row
+   </Button>
+   <Table
+     components={{
+       body: {
+         cell: EditableCell,
+       },
+     }}
+     bordered
+     dataSource={data}
+     columns={mergedColumns}
+     rowClassName="editable-row"
+     pagination={{
+       onChange: cancel,
+     }}
+     expandable={{ expandedRowRender: (record: Item) => <p>{record.script}</p> }}
+   />
+ </Form>
+</>
   );
 };
 

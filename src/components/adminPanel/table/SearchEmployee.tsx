@@ -2,6 +2,8 @@ import React, { useContext } from "react"
 import { getEmployee } from "../../../server/employee/employee"
 import { assignWork, selectEmployeeForWork } from "../../../server/workAssign/workAssign"
 import { AuthContext } from "../../../context/context"
+import { allworkCreate } from "../../../server/allWork/allWork"
+import { message } from "antd"
 
 /* eslint-disable jsx-a11y/anchor-is-valid */
 const SearchEmployee:any = ({workName,setOpenModal,record}:any) => {
@@ -11,28 +13,38 @@ const SearchEmployee:any = ({workName,setOpenModal,record}:any) => {
 
     const {setFetchAgain,fetchAgain}: any = useContext(AuthContext);
 
-    console.log("REcord",record,workName);
 
 
     const selectForWork = async(e)=>{
       try {
-        const work = await selectEmployeeForWork({itemId:record._id, workBookings:[{selectedEmployee:e._id,
+        const work = await allworkCreate({assignedItemId:record._id, selectedEmployee:e._id,
         selectedWork:workName._id,
-        status:"assigned"}]}).then((response: any)=>{
+        status:"pending"}).then((response: any)=>{
           console.log("Response om select work ==> ",response);
           setOpenModal(false)
           setFetchAgain(!fetchAgain)
+          messageApi.success({
+            type:"success",
+            content:"Employee assigned"
+           });
         }).catch((err)=>{
           console.log("error occured ==> ",err.message)
           setOpenModal(false)
           setFetchAgain(!fetchAgain)
+          messageApi.error({
+            type:"error",
+            content:err.message
+           });
 
         })
       } catch (error) {
         console.log("Error in select work ==>",error)
         setOpenModal(false)
         setFetchAgain(!fetchAgain)
-
+        messageApi.error({
+          type:"error",
+          content:"Employee not assigned"
+         });
       }
     }
 
@@ -49,10 +61,12 @@ const SearchEmployee:any = ({workName,setOpenModal,record}:any) => {
       }
     }, [])
     
-    
+    const [messageApi, contextHolder] = message.useMessage();
+
 
   return (
     <div style={{display:"flex",flexWrap:"wrap",justifyContent:"space-between"}}>
+      {contextHolder}
     {employeeName.map((e:any)=>{
         return <a key={e._id} onClick={()=>selectForWork(e)} style={{border:'1px solid black',height:30,borderRadius:1,width:'8rem',marginTop:'3%',alignSelf:'center',justifyContent:'center',alignItems:'center',color:"#222222"}}>
               <p style={{textAlign:'center'}}>{e.name}</p>
