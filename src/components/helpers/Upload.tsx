@@ -35,23 +35,23 @@ const UploadF: React.FC | any= ({item}:any) => {
         setUploading(false);
       });
 
-    // fetch('https://www.mocky.io/v2/5cc8019d300000980a055e76', {
-    //   method: 'PATCH',
-    //   body: formData,
-    // })
-    //   .then((res) => res.json())
-    //   .then(() => {
-    //     setFileList([]);
-    //     message.success('upload successfully.');
-    //   })
-    //   .catch(() => {
-    //     message.error('upload failed.');
-    //   })
-    //   .finally(() => {
-    //     setUploading(false);
-    //   });
+    fetch('https://www.mocky.io/v2/5cc8019d300000980a055e76', {
+      method: 'PATCH',
+      body: formData,
+    })
+      .then((res) => res.json())
+      .then(() => {
+        setFileList([]);
+        message.success('upload successfully.');
+      })
+      .catch(() => {
+        message.error('upload failed.');
+      })
+      .finally(() => {
+        setUploading(false);
+      });
   };
-
+var o = [];
   const props: UploadProps = {
     onRemove: (file) => {
       const index = fileList.indexOf(file);
@@ -60,15 +60,16 @@ const UploadF: React.FC | any= ({item}:any) => {
       newFileList.splice(index, 1);
       setFileList(newFileList);
     },
-    beforeUpload: (file) => {
-      setFileList([...fileList, file]);
+    beforeUpload: (file: any) => {
+      o = o.concat(file)
+      setFileList(o);
 
       return false;
     },
-    // multiple:true,
+    multiple:true,
     fileList,
   };
-
+console.log("J",o);
   return (
     <>
       <Upload {...props}>
