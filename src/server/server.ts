@@ -1,7 +1,7 @@
 import axios from 'axios';
 // import { success } from '../components/ALert/index';
 
-export const apiEndPoint = 'http://localhost:4000';
+export const apiEndPoint = 'http://localhost:8080';
 
 const handleError = (error: { isAxiosError: any; response: { data: any } }) => {
     let message = '';

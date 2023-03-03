@@ -18,6 +18,8 @@ import {
 	updateAssignWork,
 } from '../../server/workAssign/workAssign';
 import { AuthContext } from '../../context/context';
+import { CloseCircleOutlined,EditOutlined ,DeleteOutlined  } from '@ant-design/icons';
+import UploadF from '../helpers/Upload';
 import { deleteItems } from '../../server/allWork/allWork';
 import Pending from '../helpers/tags/Pending';
 import Completed from '../helpers/tags/Completed';
@@ -100,7 +102,7 @@ const EditableCell: React.FC<EditableCellProps> = ({
 
 
 
-const ClientPanel: React.FC | any = ({employId}: any) => {
+const ClientWorkInfo: React.FC | any = ({employId}: any) => {
 	const location  = useLocation()
 	const [form] = Form.useForm();
 	// const [data, setData] = useState(dummyData);
@@ -223,7 +225,24 @@ const ClientPanel: React.FC | any = ({employId}: any) => {
 			width: '20%',
 			editable: true,
 		},
-	
+		{
+			title: 'Employee',
+			dataIndex: 'select_employee',
+			width: '5%',
+			render: (_: any, record: Item) => {
+				const editable = isEditing(record);
+				return editable ? (
+					<Typography.Link
+						disabled={editingKey !== 0}
+						onClick={() => edit(record)}
+					>
+						Add
+					</Typography.Link>
+				) : (
+					<DropDown1 record={record}></DropDown1>
+				);
+			},
+		},
 		{
 			title: 'Script',
 			width: '13%',
@@ -247,7 +266,14 @@ const ClientPanel: React.FC | any = ({employId}: any) => {
 							) : (
 								'Not assigned'
 							)}
-
+              	{filtWork?.length === 0 ? null : (
+								<a
+									onClick={() => deleteWorkEmployee(filtWork)}
+									style={{ float: 'right' }}
+								>
+									<CloseCircleOutlined />
+								</a>
+							)}
 						</div>
 
 						{filtWork?.[0]?.status ? (
@@ -260,6 +286,7 @@ const ClientPanel: React.FC | any = ({employId}: any) => {
 								<span style={{alignSelf:"center"}}>
                   <UserTag text={filtWork?.[0]?.selectedEmployee.name}/>
 								</span>
+								<UploadF item={filtWork} />
 							</div>
 						) : null}
 					</div>
@@ -288,7 +315,14 @@ const ClientPanel: React.FC | any = ({employId}: any) => {
 							) : (
 								'Not assigned'
 							)}
-
+              	{filtWork?.length === 0 ? null : (
+								<a
+									onClick={() => deleteWorkEmployee(filtWork)}
+									style={{ float: 'right' }}
+								>
+									<CloseCircleOutlined  />
+								</a>
+							)}
 						</div>
 
 						{filtWork?.[0]?.status ? (
@@ -301,6 +335,7 @@ const ClientPanel: React.FC | any = ({employId}: any) => {
 								<span style={{alignSelf:"center"}}>
                   <UserTag text={filtWork?.[0]?.selectedEmployee.name}/>
 								</span>
+								<UploadF item={filtWork} />
 							</div>
 						) : null}
 					</div>
@@ -329,7 +364,14 @@ const ClientPanel: React.FC | any = ({employId}: any) => {
 							) : (
 								'Not assigned'
 							)}
-
+              	{filtWork?.length === 0 ? null : (
+								<a
+									onClick={() => deleteWorkEmployee(filtWork)}
+									style={{ float: 'right' }}
+								>
+									<CloseCircleOutlined />
+								</a>
+							)}
 						</div>
 
 						{filtWork?.[0]?.status ? (
@@ -342,6 +384,7 @@ const ClientPanel: React.FC | any = ({employId}: any) => {
 								<span style={{alignSelf:"center"}}>
                   <UserTag text={filtWork?.[0]?.selectedEmployee.name}/>
 								</span>
+								<UploadF item={filtWork} />
 							</div>
 						) : null}
 					</div>
@@ -370,7 +413,14 @@ const ClientPanel: React.FC | any = ({employId}: any) => {
 							) : (
 								'Not assigned'
 							)}
-
+              	{filtWork?.length === 0 ? null : (
+								<a
+									onClick={() => deleteWorkEmployee(filtWork)}
+									style={{ float: 'right' }}
+								>
+									<CloseCircleOutlined />
+								</a>
+							)}
 						</div>
 
 						{filtWork?.[0]?.status ? (
@@ -383,6 +433,7 @@ const ClientPanel: React.FC | any = ({employId}: any) => {
 								<span style={{alignSelf:"center"}}>
                   <UserTag text={filtWork?.[0]?.selectedEmployee.name}/>
 								</span>
+								<UploadF item={filtWork} />
 							</div>
 						) : null}
 					</div>
@@ -390,7 +441,49 @@ const ClientPanel: React.FC | any = ({employId}: any) => {
 			},
 			key: 'voice_over',
 		},
-	
+		{
+			title: 'operation',
+			dataIndex: 'operation',
+			render: (_: any, record: Item) => {
+				const editable = isEditing(record);
+				return editable ? (
+					<span
+						style={{
+							display: 'flex',
+							justifyContent: 'space-around',
+						}}
+					>
+						<Typography.Link
+							onClick={() => save(record._id, record)}
+							style={{ marginRight: 8 }}
+						>
+							Save
+						</Typography.Link>
+						<Popconfirm title="Sure to cancel?" onConfirm={cancel}>
+							<a href="/#">Cancel</a>
+						</Popconfirm>
+					</span>
+				) : (
+					<div
+						style={{
+							display: 'flex',
+							justifyContent: 'space-around',
+						}}
+					>
+						<Typography.Link
+							disabled={editingKey !== 0}
+						>
+							<EditOutlined style={{fontSize:19}} onClick={() => edit(record)}/>
+						</Typography.Link>
+						<Typography.Link
+							disabled={editingKey !== 0}
+						>
+							<DeleteOutlined 	style={{color:"red",fontSize:19}} onClick={() => deleteAllWork(record)}/>
+						</Typography.Link>
+					</div>
+				);
+			},
+		},
 	];
 
 	const deleteAllWork = async (record: Item | any) => {
@@ -489,6 +582,13 @@ const ClientPanel: React.FC | any = ({employId}: any) => {
 		<>
 			{contextHolder}
 			<Form form={form} component={false}>
+				<Button
+					onClick={handleAdd}
+					type="primary"
+					style={{ marginBottom: 16 }}
+				>
+					Add a row
+				</Button>
 				<Table
 					components={{
 						body: {
@@ -509,4 +609,4 @@ const ClientPanel: React.FC | any = ({employId}: any) => {
 	);
 };
 
-export default ClientPanel;
+export default ClientWorkInfo;

@@ -21,6 +21,8 @@ import AdminEmployeeRegister from '../adminPanel/employeePage/EmployeeRegister';
 import ClientPanel from '../adminPanel/ClientPanel';
 import AdminClientRegister from '../adminPanel/client/AdminClientRegister';
 import AdminClientInformation from '../adminPanel/client/AdminClientInformation';
+import ClientWorkInfo from '../client/ClientWorkInfo';
+import ExpandableTable from '../adminPanel/table/ExpandableTable';
 
 const { Header, Content, Sider } = Layout;
 
@@ -35,14 +37,17 @@ const Panel: React.FC | any = (props) => {
 
 	const navigate = useNavigate();
 
-	const { logout, userRole } = useContext(AuthContext);
+	const { logout, userRole, userInfo } = useContext(AuthContext);
+	const user = JSON.parse(userInfo)
 	React.useEffect(() => {
 		userRole === 'admin'?(
 			navigate(props.nav)
 		):userRole === 'employee'?(
 			navigate('/employeePanel')
 		):userRole === 'client'?(
-			navigate('/adminClientPanel')
+			navigate('/adminClientPanel',{
+				state:{id:user.payload.client,userRole}
+			})
 		):'/'
 	}, [])
 	
@@ -98,6 +103,7 @@ const Panel: React.FC | any = (props) => {
 										icon: <PieChartOutlined />,
 										onClick: () => navigate('/adminClientRegister'),
 									},
+									
 
 									{
 										label: 'Logout',
@@ -132,7 +138,9 @@ const Panel: React.FC | any = (props) => {
 									label: 'Client Panel',
 									key: '/adminClientPanel',
 									icon: <PieChartOutlined />,
-									onClick: () => navigate('/adminClientPanel'),
+									onClick: () => navigate('/adminClientPanel',{
+										state:{id:user._id}
+									}),
 									
 								},
 								{
@@ -182,8 +190,9 @@ const Panel: React.FC | any = (props) => {
 							
 							{userRole === 'admin'?(
 								<>
-								{console.log("KFFKKFK")}
-								<Route path="/dashboard" element={<DataTable />} />
+
+								{/* <Route path="/dashboard" element={<DataTable />} /> */}
+								<Route path="/dashboard" element={<ExpandableTable/>} />
 								
 								<Route
 								path="/adminEmployeePanel"
@@ -201,6 +210,10 @@ const Panel: React.FC | any = (props) => {
 								<Route
 								path="/adminClientRegister"
 								element={<AdminClientRegister />}
+								/>
+								<Route
+								path="/adminClientInfo"
+								element={<ClientWorkInfo/>}
 								/>
 								
 							
@@ -222,7 +235,7 @@ const Panel: React.FC | any = (props) => {
 
 											<Route
 								path="/adminClientPanel"
-								element={<ClientPanel />}
+								element={<ClientPanel/>}
 								/>
 							
 								</>

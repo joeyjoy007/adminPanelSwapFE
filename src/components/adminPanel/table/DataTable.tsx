@@ -25,6 +25,8 @@ import Pending from '../../helpers/tags/Pending';
 import Completed from '../../helpers/tags/Completed';
 import Progress from '../../helpers/tags/Progress';
 import UserTag from '../../helpers/tags/UserTag';
+import { useLocation } from 'react-router-dom';
+import { getSingleClient } from '../../../server/client/client';
 
 interface Item {
 	_id: number;
@@ -98,7 +100,10 @@ const EditableCell: React.FC<EditableCellProps> = ({
 	);
 };
 
-const DataTable: React.FC = () => {
+
+
+const DataTable: React.FC | any = (props) => {
+	const location  = useLocation()
 	const [form] = Form.useForm();
 	// const [data, setData] = useState(dummyData);
 	const [data, setData] = useState([]);
@@ -124,6 +129,7 @@ const DataTable: React.FC = () => {
 
 	React.useEffect(() => {
 		const getItems = getAssignWork()
+		// const getItems = getSingleClient({_id:location.state.id})
 			.then((response: any) => {
 				setData(response.payload);
 			})
@@ -245,7 +251,7 @@ const DataTable: React.FC = () => {
 				const filtWork = record?.workBookings?.filter(
 					(e: any) => e?.selectedWork?.name === 'Script'
 				);
-				// console.log("FIlttee",filtWork?.[0].length);
+				console.log("FIlttee",record);
 				return (
 					<div >
 						<div style={{ display:'flex' }}>
@@ -479,9 +485,9 @@ const DataTable: React.FC = () => {
 		},
 	];
 
-	const deleteAllWork = async (record: Item) => {
+	const deleteAllWork = async (record: Item | any) => {
 		try {
-			const deleteItem = await deleteWork({ _id: record._id })
+			const deleteItem = await deleteWork({ _id: record._id ,client:record.client})
 				.then((response: any) => {
 					console.log('Delete Response ==> ', response);
 					setCount(count - 1);
@@ -524,7 +530,13 @@ const DataTable: React.FC = () => {
 	});
 
 	const handleAdd = () => {
-		const createWork = createAssignWork()
+		if(!location?.state?.id){
+			message.error({
+				type:"error",
+				content:"No client selected"
+			})
+		}else{
+			const createWork = createAssignWork({client:location?.state?.id})
 			.then((response: any) => {
 				console.log('response add ==>', response);
 				messageApi.success({
@@ -550,6 +562,7 @@ const DataTable: React.FC = () => {
 		};
 		setData([...data, newData]);
 		setCount(count + 1);
+		}
 	};
 
 	// const handleAdd = () => {
@@ -588,7 +601,8 @@ const DataTable: React.FC = () => {
 					pagination={{
 						onChange: cancel,
 					}}
-					//  expandable={{ expandedRowRender: (record: any) => <p>{record.workBookings._id}</p> }}
+					rowKey={(record)=>record._id}
+					 expandable={{ expandedRowRender: (record: any) => <p>{record.workBookings._id}</p> }}
 				/>
 			</Form>
 		</>

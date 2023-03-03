@@ -12,6 +12,10 @@ export const getAllClient = async () => {
   return await axios.get('/client');
 };
 
+export const getSingleClient = async (data: any) => {
+  return await axios.post('/client/getSingleClient',data);
+};
+
 // export const updateStatus = async (data) => {
 //   return await axios.patch('/employee/updateStatus',data);
 // };

@@ -5,7 +5,7 @@ const UserList = ['U', 'Lucy', 'Tom', 'Edward'];
 const ColorList = ['#f56a00', '#7265e6', '#ffbf00', '#00a2ae'];
 const GapList = [4, 3, 2, 1];
 
-const Avatars: React.FC | any= ({title,setShowDescription,description}) => {
+const Avatars: React.FC | any= ({title,setShowDescription,buttonName}) => {
   const [user, setUser] = useState(UserList[0]);
   const [color, setColor] = useState(ColorList[0]);
   const [gap, setGap] = useState(GapList[0]);
@@ -32,9 +32,9 @@ console.log("T",title._id);
       <Button
         size="small"
         style={{ margin: '0 16px', verticalAlign: 'middle' }}
-        onClick={()=>setShowDescription(title._id)}
+        onClick={()=>setShowDescription()}
       >
-       Get Information
+       {buttonName}
       </Button>
 
     </>

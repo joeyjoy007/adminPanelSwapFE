@@ -22,7 +22,7 @@ const Navigation = () => {
           </>
         ):(
           <>
-                   <Route path="/*" element={<Panel nav='/dashboard'/>} />
+                   <Route path="/*" element={<Panel nav='/adminClientInformation'/>} />
           </>
         )}
       </Routes>

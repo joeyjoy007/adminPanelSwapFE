@@ -8,8 +8,8 @@ export const getAssignWork = async () => {
   return await axios.get('/assignWork');
 };
 
-export const createAssignWork = async () => {
-  return await axios.post('/assignWork');
+export const createAssignWork = async (data: any) => {
+  return await axios.post('/assignWork', data);
 };
 
 export const updateAssignWork = async (data) => {

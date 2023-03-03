@@ -26,9 +26,12 @@ const AdminEmployeePage = () => {
     <Description1/> */}
     {employeeDetails.map((e)=>{
       console.log(showDescription,e._id)
+      const setId = ()=>{
+        setShowDescription(e._id)
+      }
       return (
         <div >
-        <p><Avatars title={e} setShowDescription={setShowDescription} description={showDescription}/></p>
+        <p><Avatars title={e} setShowDescription={setId} buttonName={'Get Information'}/></p>
         {showDescription === e._id?(
           <Description1 user={e}/>
         ):(
