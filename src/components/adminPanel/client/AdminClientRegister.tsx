@@ -1,6 +1,7 @@
 import React from 'react';
 import { Button, Checkbox, Form, FormInstance, Input, message } from 'antd';
 import { createEmployee } from '../../../server/employee/employee';
+import { createClient } from '../../../server/client/client';
 
 
 
@@ -16,13 +17,13 @@ const onFinishFailed = (errorInfo: any) => {
 
 
 
-const AdminEmployeeRegister: React.FC = () => {
+const AdminClientRegister: React.FC = () => {
     const formRef:any = React.useRef<FormInstance>(null);
 
     const onFinish = async(values: any) => {
         try {
           console.log(1);
-          const employee = await createEmployee({...values,role:"employee"}).then((response: any)=>{
+          const employee = await createClient({...values,role:"client"}).then((response: any)=>{
            messageApi.success({
             type:"success",
             content:"Registration success"
@@ -59,7 +60,7 @@ return (
   >
      
     <Form.Item
-      label="Employee Name"
+      label="Client Name"
       name="name"
       rules={[{ required: true, message: 'Please input your username!' }]}
     >
@@ -100,4 +101,4 @@ return (
 )
 }
 
-export default AdminEmployeeRegister;
+export default AdminClientRegister;

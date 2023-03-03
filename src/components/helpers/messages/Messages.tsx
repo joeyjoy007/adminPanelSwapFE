@@ -10,7 +10,7 @@ const Messages: React.FC = () => {
 
   return (
     <>
-      {contextHolder}
+      
       <Button type="primary" onClick={info}>
         Display normal message
       </Button>

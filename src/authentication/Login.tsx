@@ -1,18 +1,15 @@
 
 import { Button, Form, Input, Row } from 'antd'
-
-
-
-
 import React, { useContext } from 'react'
 import { AuthContext } from '../context/context';
+
 
 const Login = () => {
 
 
   const {login} = useContext(AuthContext);
+  
   const onFinish = (values: any) => {
-    console.log('Success:', values);
     return login(values)
   };
   

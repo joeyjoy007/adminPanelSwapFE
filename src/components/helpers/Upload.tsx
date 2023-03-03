@@ -2,33 +2,54 @@ import React, { useState } from 'react';
 import { UploadOutlined } from '@ant-design/icons';
 import { Button, message, Upload } from 'antd';
 import type { RcFile, UploadFile, UploadProps } from 'antd/es/upload/interface';
+import axios from 'axios';
 
-const UploadF: React.FC = () => {
+const UploadF: React.FC | any= ({item}:any) => {
   const [fileList, setFileList] = useState<UploadFile[]>([]);
   const [uploading, setUploading] = useState(false);
 
   const handleUpload = () => {
     const formData = new FormData();
     fileList.forEach((file) => {
-      formData.append('files[]', file as RcFile);
-    });
+      formData.append('file', file as RcFile);
+      formData.append('_id', item[0]._id);
+    })
     setUploading(true);
     // You can use any AJAX library you like
-    fetch('https://www.mocky.io/v2/5cc8019d300000980a055e76', {
-      method: 'POST',
-      body: formData,
+
+
+    axios({
+      method: "patch",
+      url: 'http://localhost:4000/createWork/u',
+      data: formData,
+      headers: { "Content-Type": "multipart/form-data" },
     })
-      .then((res) => res.json())
-      .then(() => {
+      .then( (response) =>{
         setFileList([]);
         message.success('upload successfully.');
+        console.log(response);
       })
-      .catch(() => {
-        message.error('upload failed.');
-      })
-      .finally(() => {
+      .catch((err)=> {
+        message.error('jpg, png, jpeg, pdf are allowed ,upload one at a time');
+      }).finally(() => {
         setUploading(false);
       });
+
+    // fetch('https://www.mocky.io/v2/5cc8019d300000980a055e76', {
+    //   method: 'PATCH',
+    //   body: formData,
+    // })
+    //   .then((res) => res.json())
+    //   .then(() => {
+    //     setFileList([]);
+    //     message.success('upload successfully.');
+    //   })
+    //   .catch(() => {
+    //     message.error('upload failed.');
+    //   })
+    //   .finally(() => {
+    //     setUploading(false);
+    //   });
   };
 
   const props: UploadProps = {
@@ -44,23 +65,26 @@ const UploadF: React.FC = () => {
 
       return false;
     },
+    // multiple:true,
     fileList,
   };
 
   return (
     <>
       <Upload {...props}>
-        <Button icon={<UploadOutlined />}>Select File</Button>
+        <Button style={{fontSize:16}} icon={<UploadOutlined />}/>
       </Upload>
-      <Button
-        type="primary"
-        onClick={handleUpload}
-        disabled={fileList.length === 0}
-        loading={uploading}
-        style={{ marginTop: 16 }}
-      >
-        {uploading ? 'Uploading' : 'Start Upload'}
-      </Button>
+     {fileList.length>0?(
+       <Button
+       type="primary"
+       onClick={handleUpload}
+       disabled={fileList.length === 0}
+       loading={uploading}
+       style={{ marginTop: 16 }}
+     >
+       {uploading ? 'Uploading' : 'Upload'}
+     </Button>
+     ):null}
     </>
   );
 };

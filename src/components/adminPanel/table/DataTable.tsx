@@ -1,363 +1,598 @@
+/* eslint-disable jsx-a11y/anchor-is-valid */
 import React, { useContext, useState } from 'react';
-import { Button, Form, Input, InputNumber, Popconfirm, Table, Typography, message } from 'antd';
+import {
+	Button,
+	Form,
+	Input,
+	InputNumber,
+	Popconfirm,
+	Table,
+	Typography,
+	message,
+} from 'antd';
 import DropDown1 from './DropDown';
-import { createAssignWork, deleteWork, getAssignWork, updateAssignWork } from '../../../server/workAssign/workAssign';
+import {
+	createAssignWork,
+	deleteWork,
+	getAssignWork,
+	updateAssignWork,
+} from '../../../server/workAssign/workAssign';
 import { AuthContext } from '../../../context/context';
+import { CloseCircleOutlined,EditOutlined ,DeleteOutlined  } from '@ant-design/icons';
 import UploadF from '../../helpers/Upload';
+import { deleteItems } from '../../../server/allWork/allWork';
+import Pending from '../../helpers/tags/Pending';
+import Completed from '../../helpers/tags/Completed';
+import Progress from '../../helpers/tags/Progress';
+import UserTag from '../../helpers/tags/UserTag';
 
 interface Item {
-  _id: number;
-  item: string;
-  script: string;
-  voice_over: string;
-  video: string;
-  thumbnail: string;
+	_id: number;
+	item: string;
+	script: string;
+	voice_over: string;
+	video: string;
+	thumbnail: string;
 }
 
 const dummyData = [
-  {
-    _id:1,
-    item:"Jerry",
-    script:"Done",
-    voice_over:"New yourk",
-    video:"Done",
-    thumbnail:"Done"
-  },
-  {
-    _id:2,
-    item:"Tom",
-    script:"Dione",
-    voice_over:"Australia",
-    video:"Done",
-    thumbnail:"done"
-  }
-]
+	{
+		_id: 1,
+		item: 'Jerry',
+		script: 'Done',
+		voice_over: 'New yourk',
+		video: 'Done',
+		thumbnail: 'Done',
+	},
+	{
+		_id: 2,
+		item: 'Tom',
+		script: 'Dione',
+		voice_over: 'Australia',
+		video: 'Done',
+		thumbnail: 'done',
+	},
+];
 
 interface EditableCellProps extends React.HTMLAttributes<HTMLElement> {
-  editing: boolean;
-  dataIndex: string;
-  title: any;
-  inputType: 'number' | 'text';
-  record: Item;
-  index: number;
-  children: React.ReactNode;
+	editing: boolean;
+	dataIndex: string;
+	title: any;
+	inputType: 'number' | 'text';
+	record: Item;
+	index: number;
+	children: React.ReactNode;
 }
 
 const EditableCell: React.FC<EditableCellProps> = ({
-  editing,
-  dataIndex,
-  title,
-  inputType,
-  record,
-  index,
-  children,
-  ...restProps
+	editing,
+	dataIndex,
+	title,
+	inputType,
+	record,
+	index,
+	children,
+	...restProps
 }) => {
-  const inputNode = inputType === 'number' ? <InputNumber /> : <Input />;
+	const inputNode = inputType === 'number' ? <InputNumber /> : <Input />;
 
-  return (
-    <td {...restProps}>
-      {editing ? (
-        <Form.Item
-          name={dataIndex}
-          style={{ margin: 0 }}
-          rules={[
-            {
-              required: true,
-              message: `Please Input ${title}!`,
-            },
-          ]}
-        >
-          {inputNode}
-        </Form.Item>
-      ) : (
-        children
-      )}
-    </td>
-  );
+	return (
+		<td {...restProps}>
+			{editing ? (
+				<Form.Item
+					name={dataIndex}
+					style={{ margin: 0 }}
+					rules={[
+						{
+							required: true,
+							message: `Please Input ${title}!`,
+						},
+					]}
+				>
+					{inputNode}
+				</Form.Item>
+			) : (
+				children
+			)}
+		</td>
+	);
 };
 
 const DataTable: React.FC = () => {
-  const [form] = Form.useForm();
-  // const [data, setData] = useState(dummyData);
-  const [data, setData] = useState([]);
-  const [editingKey, setEditingKey] = useState<Number>(0);
-  const [count, setCount] = React.useState(3)
+	const [form] = Form.useForm();
+	// const [data, setData] = useState(dummyData);
+	const [data, setData] = useState([]);
+	const [editingKey, setEditingKey] = useState<Number>(0);
+	const [count, setCount] = React.useState(3);
+	const [fetch1, setFetch1] = React.useState(false);
 
-  const isEditing = (record: Item) => record._id === editingKey;
+	const isEditing = (record: Item) => record._id === editingKey;
 
-  const edit = (record: Partial<Item> & { _id: React.Key }) => {
-    form.setFieldsValue({ item: '', script: '', voice_over: '',video:'',thumbnail:'' ,...record });
-    setEditingKey(record._id);
-  
-  }
-  
-const {fetchAgain} = useContext(AuthContext);
+	const edit = (record: Partial<Item> & { _id: React.Key }) => {
+		form.setFieldsValue({
+			item: '',
+			script: '',
+			voice_over: '',
+			video: '',
+			thumbnail: '',
+			...record,
+		});
+		setEditingKey(record._id);
+	};
 
+	const { fetchAgain } = useContext(AuthContext);
 
-  React.useEffect(() => {
-    const getItems = getAssignWork().then((response:any)=>{
-      setData(response.payload)
-    }).catch((Err)=>{
-      console.log("error occured==>",Err);
-    })
-  }, [editingKey,count, fetchAgain])
-  
+	React.useEffect(() => {
+		const getItems = getAssignWork()
+			.then((response: any) => {
+				setData(response.payload);
+			})
+			.catch((Err) => {
+				console.log('error occured==>', Err);
+			});
+	}, [editingKey, count, fetchAgain, fetch1]);
 
+	const cancel = () => {
+		setEditingKey(0);
+	};
 
-  const cancel = () => {
-    setEditingKey(0);
-  };
+	const save = async (_id: React.Key, record) => {
+		try {
+			// console.log("Record",...data)
 
-  const save = async (_id: React.Key,record) => {
-    try {
-      // console.log("Record",...data)
+			const row = (await form.validateFields()) as Item;
+			const work = updateAssignWork({
+				itemId: record._id,
+				item: row.item,
+			})
+				.then((response: any) => {
+					console.log('updated item==> ', response);
+					setEditingKey(0);
+					messageApi.success({
+						type: 'success',
+						content: 'Work Saved',
+					});
+				})
+				.catch((err: any) => {
+					messageApi.error({
+						type: 'error',
+						content: 'Work not saved',
+					});
+				});
 
+			// const newData = [...data];
+			// console.log("ND",newData)
+			// const index = newData.findIndex((item) => _id === item._id);
+			// if (index > -1) {
+			//   const item = newData[index];
+			//   newData.splice(index, 1, {
+			//     ...item,
+			//     ...row,
+			//   });
+			//   setData(newData);
+			//   setEditingKey(0);
+			// } else {
+			//   newData.push(row);
+			//   setData(newData);
+			//   setEditingKey(0);
+			// }
+		} catch (errInfo) {
+			console.log('Validate Failed:', errInfo);
+		}
+	};
 
-      const row = (await form.validateFields()) as Item;
-      const work = updateAssignWork({itemId:record._id,item:row.item}).then((response: any)=>{
-        console.log("updated item==> ",response)
-        setEditingKey(0)
-        messageApi.success({
-          type:"success",
-          content:"Work Saved"
-         });
-        
+	const deleteWorkEmployee = async (filtWork) => {
+		try {
+			const deleteitem = await deleteItems({
+				itemId: filtWork?.[0].assignedItemId,
+				workId: filtWork?.[0]._id,
+				empId: filtWork?.[0].selectedEmployee._id,
+			})
+				.then(() => {
+					messageApi.success({
+						type: 'success',
+						content: 'Item deleted',
+					});
+					setFetch1(!fetch1);
+				})
+				.catch((err) => {
+					messageApi.error({
+						type: 'error',
+						content: err.message,
+					});
+					setFetch1(!fetch1);
+				});
+		} catch (error) {
+			messageApi.error({
+				type: 'error',
+				content: error.message,
+			});
+			setFetch1(!fetch1);
+		}
+	};
 
-      }).catch((err:any)=>{
-        messageApi.error({
-          type:"error",
-          content:"Work not saved"
-         });
-      })
-
-
-      // const newData = [...data];
-      // console.log("ND",newData)
-      // const index = newData.findIndex((item) => _id === item._id);
-      // if (index > -1) {
-      //   const item = newData[index];
-      //   newData.splice(index, 1, {
-      //     ...item,
-      //     ...row,
-      //   });
-      //   setData(newData);
-      //   setEditingKey(0);
-      // } else {
-      //   newData.push(row);
-      //   setData(newData);
-      //   setEditingKey(0);
-      // }
-    } catch (errInfo) {
-      console.log('Validate Failed:', errInfo);
-    }
-  };
-
-
-  const columns = [
-    {
-      title: 'Item',
-      dataIndex: 'item',
-      width: '30%',
-      editable: true,
+	const columns = [
+		{
+			title: 'Item',
+			dataIndex: 'item',
+			width: '20%',
+			editable: true,
+		},
+		{
+			title: 'Employee',
+			dataIndex: 'select_employee',
+			width: '5%',
+			render: (_: any, record: Item) => {
+				const editable = isEditing(record);
+				return editable ? (
+					<Typography.Link
+						disabled={editingKey !== 0}
+						onClick={() => edit(record)}
+					>
+						Add
+					</Typography.Link>
+				) : (
+					<DropDown1 record={record}></DropDown1>
+				);
+			},
+		},
+		{
+			title: 'Script',
+			width: '13%',
+			dataIndex: 'script',
       
-      
-    },
-    {
-      title: 'Employee',
-      dataIndex: 'select_employee',
-      width:'5%',
-    render: (_: any, record: Item) => {
-      const editable = isEditing(record);
-      return editable ? (
-        <Typography.Link disabled={editingKey !== 0} onClick={() => edit(record)}>
-          Add
-        </Typography.Link>
-      ) : (
-        <DropDown1 record={record}></DropDown1>
-      );
-    },
-      
-    },
-    {
-      title: "Script",
-      width:'10%',
-      dataIndex: "script",
-      render: (_: any, record: any) => {
-        const filtWork = record?.workBookings?.filter((e:any)=>e?.selectedWork?.name === "Script");
+			render: (_: any, record: any) => {
+				const filtWork = record?.workBookings?.filter(
+					(e: any) => e?.selectedWork?.name === 'Script'
+				);
+				// console.log("FIlttee",filtWork?.[0].length);
+				return (
+					<div >
+						<div style={{ display:'flex' }}>
+						
+							{filtWork?.[0]?.status === 'pending' ? (
+								<Pending text="Pending" />
+							) : filtWork?.[0]?.status === 'inProgress' ? (
+								<Progress text="Progress" />
+							) : filtWork?.[0]?.status === 'completed' ? (
+								<Completed text="Completed" />
+							) : (
+								'Not assigned'
+							)}
+              	{filtWork?.length === 0 ? null : (
+								<a
+									onClick={() => deleteWorkEmployee(filtWork)}
+									style={{ float: 'right' }}
+								>
+									<CloseCircleOutlined />
+								</a>
+							)}
+						</div>
+
+						{filtWork?.[0]?.status ? (
+							<div
+								style={{
+									display: 'flex',
+									justifyContent: 'space-between',
+								}}
+							>
+								<span style={{alignSelf:"center"}}>
+                  <UserTag text={filtWork?.[0]?.selectedEmployee.name}/>
+								</span>
+								<UploadF item={filtWork} />
+							</div>
+						) : null}
+					</div>
+				);
+			},
+			key: 'script',
+		},
+		{
+			title: 'Voice over',
+			width: '13%',
+			dataIndex: 'script',
+			render: (_: any, record: any) => {
+				const filtWork = record?.workBookings?.filter(
+					(e: any) => e.selectedWork.name === 'Voice over'
+				);
         return (
-          <>
-          <p style={{color:filtWork?.[0]?.status === 'pending'?"red":filtWork?.[0]?.status==='inProgress'?'orange':filtWork?.[0]?.status==='completed'?'green':'black'}}>{filtWork?.[0]?filtWork[0].status:'Null'}</p>
-          <UploadF/>
-          </>
-        )
-      },
-      key: "script"
-    },
-    {
-      title: "Voice over",
-      width:'10%',
-      dataIndex: "script",
-      render: (_: any, record: any) => {
-        const filtWork = record?.workBookings?.filter((e:any)=>e.selectedWork.name === "Voice over");
-        return <p style={{color:filtWork?.[0]?.status === 'pending'?"red":filtWork?.[0]?.status==='inProgress'?'orange':filtWork?.[0]?.status==='completed'?'green':'black'}}>{filtWork?.[0]?filtWork[0].status:'Null'}</p>
-      },
-      key: "voice_over"
-    },
-    {
-      title: "Video",
-      width:'10%',
-      dataIndex: "video",
-      render: (_: any, record: any) => {
-        const filtWork = record?.workBookings?.filter((e:any)=>e.selectedWork.name === "Video");
-        return <p style={{color:filtWork?.[0]?.status === 'pending'?"red":filtWork?.[0]?.status==='inProgress'?'orange':filtWork?.[0]?.status==='completed'?'green':'black'}}>{filtWork?.[0]?filtWork[0].status:'Null'}</p>
-      },
-      key: "video"
-    },
-    {
-      title: "Thumbnail",
-      width:'10%',
-      dataIndex: "thumbnail",
-      render: (_: any, record: any) => {
-        const filtWork = record?.workBookings?.filter((e:any)=>e.selectedWork.name === "Thumbnail");
-        return <p style={{color:filtWork?.[0]?.status === 'pending'?"red":filtWork?.[0]?.status==='inProgress'?'orange':filtWork?.[0]?.status==='completed'?'green':'black'}}>{filtWork?.[0]?filtWork[0].status:'Null'}</p>
-      },
-      key: "voice_over"
-    },
-    {
-      title: 'operation',
-      dataIndex: 'operation',
-      render: (_: any, record: Item) => {
-        const editable = isEditing(record);
-        return editable ? (
-          <span  style={{display:'flex',justifyContent:"space-around"}}>
-            <Typography.Link onClick={() => save(record._id,record)} style={{ marginRight: 8 }}>
-              Save
-            </Typography.Link>
-            <Popconfirm title="Sure to cancel?" onConfirm={cancel}>
-              <a href='/#'>Cancel</a>
-            </Popconfirm>
-          </span>
-        ) : (
-         <div style={{display:'flex',justifyContent:"space-around"}}>
-          <Typography.Link disabled={editingKey !== 0} onClick={() => edit(record)}>
-            Edit
-          </Typography.Link>
-          <Typography.Link  disabled={editingKey !== 0} onClick={() => deleteAllWork(record)}>
-            Delete
-          </Typography.Link>
-         </div>
-        );
-      },
-    },
-   
-  ];
+					<div >
+						<div style={{ display:'flex' }}>
+						
+							{filtWork?.[0]?.status === 'pending' ? (
+								<Pending text="Pending" />
+							) : filtWork?.[0]?.status === 'inProgress' ? (
+								<Progress text="Progress" />
+							) : filtWork?.[0]?.status === 'completed' ? (
+								<Completed text="Completed" />
+							) : (
+								'Not assigned'
+							)}
+              	{filtWork?.length === 0 ? null : (
+								<a
+									onClick={() => deleteWorkEmployee(filtWork)}
+									style={{ float: 'right' }}
+								>
+									<CloseCircleOutlined  />
+								</a>
+							)}
+						</div>
 
-  const deleteAllWork =async (record: Item)=>{
-    try {
-      const deleteItem =await deleteWork({_id:record._id}).then((response: any)=>{
-        console.log("Delete Response ==> ",response);
-        setCount(count-1)
-        messageApi.success({
-          type:"success",
-          content:"Work deleted"
-         });
-      }).catch((error)=>{
-        messageApi.error({
-          type:"error",
-          content:"Internal server error"
-         });;
-      })
-    } catch (error) {
-      messageApi.error({
-        type:"error",
-        content:"Work not deleted "
-       });;
-    }
-  }
+						{filtWork?.[0]?.status ? (
+							<div
+								style={{
+									display: 'flex',
+									justifyContent: 'space-between',
+								}}
+							>
+								<span style={{alignSelf:"center"}}>
+                  <UserTag text={filtWork?.[0]?.selectedEmployee.name}/>
+								</span>
+								<UploadF item={filtWork} />
+							</div>
+						) : null}
+					</div>
+				);
+			},
+			key: 'voice_over',
+		},
+		{
+			title: 'Video',
+			width: '13%',
+			dataIndex: 'video',
+			render: (_: any, record: any) => {
+				const filtWork = record?.workBookings?.filter(
+					(e: any) => e.selectedWork.name === 'Video'
+				);
+        return (
+					<div >
+						<div style={{ display:'flex' }}>
+						
+							{filtWork?.[0]?.status === 'pending' ? (
+								<Pending text="Pending" />
+							) : filtWork?.[0]?.status === 'inProgress' ? (
+								<Progress text="Progress" />
+							) : filtWork?.[0]?.status === 'completed' ? (
+								<Completed text="Completed" />
+							) : (
+								'Not assigned'
+							)}
+              	{filtWork?.length === 0 ? null : (
+								<a
+									onClick={() => deleteWorkEmployee(filtWork)}
+									style={{ float: 'right' }}
+								>
+									<CloseCircleOutlined />
+								</a>
+							)}
+						</div>
 
+						{filtWork?.[0]?.status ? (
+							<div
+								style={{
+									display: 'flex',
+									justifyContent: 'space-between',
+								}}
+							>
+								<span style={{alignSelf:"center"}}>
+                  <UserTag text={filtWork?.[0]?.selectedEmployee.name}/>
+								</span>
+								<UploadF item={filtWork} />
+							</div>
+						) : null}
+					</div>
+				);
+			},
+			key: 'video',
+		},
+		{
+			title: 'Thumbnail',
+			width: '13%',
+			dataIndex: 'thumbnail',
+			render: (_: any, record: any) => {
+				const filtWork = record?.workBookings?.filter(
+					(e: any) => e.selectedWork.name === 'Thumbnail'
+				);
+        return (
+					<div >
+						<div style={{ display:'flex' }}>
+						
+							{filtWork?.[0]?.status === 'pending' ? (
+								<Pending text="Pending" />
+							) : filtWork?.[0]?.status === 'inProgress' ? (
+								<Progress text="Progress" />
+							) : filtWork?.[0]?.status === 'completed' ? (
+								<Completed text="Completed" />
+							) : (
+								'Not assigned'
+							)}
+              	{filtWork?.length === 0 ? null : (
+								<a
+									onClick={() => deleteWorkEmployee(filtWork)}
+									style={{ float: 'right' }}
+								>
+									<CloseCircleOutlined />
+								</a>
+							)}
+						</div>
 
-  const mergedColumns = columns.map((col) => {
-    if (!col.editable) {
-      return col;
-    }
-    return {
-      ...col,
-      onCell: (record: Item) => ({
-        record,
-        inputType: col.dataIndex === 'age' ? 'number' : 'text',
-        dataIndex: col.dataIndex,
-        title: col.title,
-        editing: isEditing(record),
-      }),
-    };
-  });
+						{filtWork?.[0]?.status ? (
+							<div
+								style={{
+									display: 'flex',
+									justifyContent: 'space-between',
+								}}
+							>
+								<span style={{alignSelf:"center"}}>
+                  <UserTag text={filtWork?.[0]?.selectedEmployee.name}/>
+								</span>
+								<UploadF item={filtWork} />
+							</div>
+						) : null}
+					</div>
+				);
+			},
+			key: 'voice_over',
+		},
+		{
+			title: 'operation',
+			dataIndex: 'operation',
+			render: (_: any, record: Item) => {
+				const editable = isEditing(record);
+				return editable ? (
+					<span
+						style={{
+							display: 'flex',
+							justifyContent: 'space-around',
+						}}
+					>
+						<Typography.Link
+							onClick={() => save(record._id, record)}
+							style={{ marginRight: 8 }}
+						>
+							Save
+						</Typography.Link>
+						<Popconfirm title="Sure to cancel?" onConfirm={cancel}>
+							<a href="/#">Cancel</a>
+						</Popconfirm>
+					</span>
+				) : (
+					<div
+						style={{
+							display: 'flex',
+							justifyContent: 'space-around',
+						}}
+					>
+						<Typography.Link
+							disabled={editingKey !== 0}
+						>
+							<EditOutlined style={{fontSize:19}} onClick={() => edit(record)}/>
+						</Typography.Link>
+						<Typography.Link
+							disabled={editingKey !== 0}
+						>
+							<DeleteOutlined 	style={{color:"red",fontSize:19}} onClick={() => deleteAllWork(record)}/>
+						</Typography.Link>
+					</div>
+				);
+			},
+		},
+	];
 
-  const handleAdd = ()=>{
-    const createWork = createAssignWork().then((response: any)=>{
-      console.log("response add ==>",response)
-      messageApi.success({
-        type:"success",
-        content:"Work Added"
-       });
-      // setData(response.payload)
-    }).catch((err)=>{
-      messageApi.error({
-        type:"error",
-        content:"Work not added "
-       });;
-    })
+	const deleteAllWork = async (record: Item) => {
+		try {
+			const deleteItem = await deleteWork({ _id: record._id })
+				.then((response: any) => {
+					console.log('Delete Response ==> ', response);
+					setCount(count - 1);
+					messageApi.success({
+						type: 'success',
+						content: 'Work deleted',
+					});
+					setFetch1(!fetch1);
+				})
+				.catch((error) => {
+					messageApi.error({
+						type: 'error',
+						content: 'Internal server error',
+					});
+				});
+			setFetch1(!fetch1);
+		} catch (error) {
+			messageApi.error({
+				type: 'error',
+				content: 'Work not deleted ',
+			});
+			setFetch1(!fetch1);
+		}
+	};
 
-    const newData :Item = {
-      _id:count,
-      item:"Write requirements here",
-      script:'df',
-      voice_over:'sdf',
-      video:'sdf',
-      thumbnail:'sdf'
-    }
-    setData([...data,newData])
-    setCount(count+1)
-  }
+	const mergedColumns = columns.map((col) => {
+		if (!col.editable) {
+			return col;
+		}
+		return {
+			...col,
+			onCell: (record: Item) => ({
+				record,
+				inputType: col.dataIndex === 'age' ? 'number' : 'text',
+				dataIndex: col.dataIndex,
+				title: col.title,
+				editing: isEditing(record),
+			}),
+		};
+	});
 
-  // const handleAdd = () => {
-  //   const newData: DataType = {
-  //     _id: count,
-  //     name: `Edward King ${count}`,
-  //     age: '32',
-  //     address: `London, Park Lane no. ${count}`,
-  //   };
-  //   setDataSource([...dataSource, newData]);
-  //   setCount(count + 1);
-  // };
-  const [messageApi, contextHolder] = message.useMessage();
+	const handleAdd = () => {
+		const createWork = createAssignWork()
+			.then((response: any) => {
+				console.log('response add ==>', response);
+				messageApi.success({
+					type: 'success',
+					content: 'Work Added',
+				});
+				// setData(response.payload)
+			})
+			.catch((err) => {
+				messageApi.error({
+					type: 'error',
+					content: 'Work not added ',
+				});
+			});
 
-  return (
-<>
-{contextHolder}
-<Form form={form} component={false}>
-      
-      <Button onClick={handleAdd} type="primary" style={{ marginBottom: 16 }}>
-     Add a row
-   </Button>
-   <Table
-     components={{
-       body: {
-         cell: EditableCell,
-       },
-     }}
-     bordered
-     dataSource={data}
-     columns={mergedColumns}
-     rowClassName="editable-row"
-     pagination={{
-       onChange: cancel,
-     }}
-     expandable={{ expandedRowRender: (record: Item) => <p>{record.script}</p> }}
-   />
- </Form>
-</>
-  );
+		const newData: Item = {
+			_id: count,
+			item: 'Write requirements here',
+			script: 'df',
+			voice_over: 'sdf',
+			video: 'sdf',
+			thumbnail: 'sdf',
+		};
+		setData([...data, newData]);
+		setCount(count + 1);
+	};
+
+	// const handleAdd = () => {
+	//   const newData: DataType = {
+	//     _id: count,
+	//     name: `Edward King ${count}`,
+	//     age: '32',
+	//     address: `London, Park Lane no. ${count}`,
+	//   };
+	//   setDataSource([...dataSource, newData]);
+	//   setCount(count + 1);
+	// };
+	const [messageApi, contextHolder] = message.useMessage();
+
+	return (
+		<>
+			{contextHolder}
+			<Form form={form} component={false}>
+				<Button
+					onClick={handleAdd}
+					type="primary"
+					style={{ marginBottom: 16 }}
+				>
+					Add a row
+				</Button>
+				<Table
+					components={{
+						body: {
+							cell: EditableCell,
+						},
+					}}
+					bordered
+					dataSource={data}
+					columns={mergedColumns}
+					rowClassName="editable-row"
+					pagination={{
+						onChange: cancel,
+					}}
+					//  expandable={{ expandedRowRender: (record: any) => <p>{record.workBookings._id}</p> }}
+				/>
+			</Form>
+		</>
+	);
 };
 
 export default DataTable;

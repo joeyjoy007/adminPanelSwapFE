@@ -1,40 +1,41 @@
 import React from 'react';
-import { Badge, Descriptions } from 'antd';
-import EmployeeInfo from './EmployeInfo';
+import { Descriptions } from 'antd';
+import Tags from '../../helpers/Tags';
+import Progress from '../../helpers/tags/Progress';
+import Pending from '../../helpers/tags/Pending';
+import Completed from '../../helpers/tags/Completed';
 
-const Description1: React.FC = () => (
- <>
- <EmployeeInfo/>
- <Descriptions title="Work status" bordered>
-    <Descriptions.Item label="Product">Cloud Database</Descriptions.Item>
-    <Descriptions.Item label="Billing Mode">Prepaid</Descriptions.Item>
-    <Descriptions.Item label="Automatic Renewal">YES</Descriptions.Item>
-    <Descriptions.Item label="Order time">2018-04-24 18:00:00</Descriptions.Item>
-    <Descriptions.Item label="Usage Time" span={2}>
-      2019-04-24 18:00:00
-    </Descriptions.Item>
-    <Descriptions.Item label="Status" span={3}>
-      <Badge status="processing" text="Running" />
-    </Descriptions.Item>
-    <Descriptions.Item label="Negotiated Amount">$80.00</Descriptions.Item>
-    <Descriptions.Item label="Discount">$20.00</Descriptions.Item>
-    <Descriptions.Item label="Official Receipts">$60.00</Descriptions.Item>
-    <Descriptions.Item label="Config Info">
-      Data disk type: MongoDB
-      <br />
-      Database version: 3.4
-      <br />
-      Package: dds.mongo.mid
-      <br />
-      Storage space: 10 GB
-      <br />
-      Replication factor: 3
-      <br />
-      Region: East China 1
-      <br />
-    </Descriptions.Item>
-  </Descriptions>
- </>
+const Description1: React.FC | any = ({user}) => 
+
+{
+  console.log("USEr",user)
+  return (
+    <div>
+    <Descriptions
+      title={`${user.name} information`}
+      bordered
+      column={{ xxl: 4, xl: 3, lg: 3, md: 3, sm: 2, xs: 1 }}
+    >
+     {user?.assignedWork.length > 0?(
+      user?.assignedWork.map((e)=>{
+        return (
+          <>
+           <Descriptions.Item label="Item assigned">{e.assignedItemId.item}</Descriptions.Item>
+        <Descriptions.Item label="Work assigned">{e.selectedWork.name}</Descriptions.Item>
+        <Descriptions.Item label="Status">
+          {e.status === 'inProgress' ? <Progress text = {e.status}/>:e.status === 'pending'?<Pending text={e.status} />:e.status === 'completed'?<Completed text={e.status}/>:null}
+        </Descriptions.Item>
+      
+          </>
+        )
+       })
+     ):(
+      <p>Work not assigned</p>
+     )}
+    </Descriptions>
+  </div>
 );
+  
+}
 
 export default Description1;
