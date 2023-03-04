@@ -9,14 +9,22 @@ import { Link } from 'react-router-dom';
 import axios from 'axios';
 import fileDownload from 'js-file-download';
 import {
-	DownloadOutlined
+	DownloadOutlined,
+	UploadOutlined
 } from '@ant-design/icons';
 import { AuthContext } from '../../context/context';
+import UploadF from '../helpers/Upload';
+import UploadF2 from '../helpers/Upload2';
+import Modalf from '../helpers/modal/Modal';
 
 const EmployeePanel: React.FC = () => {
 	const [assignedWork, setAssignedWork] = React.useState([]);
   const [valueForStatus, setValueForStatus] = React.useState<String>('')
   const [fetchAgain, setFetchAgain] = React.useState<Boolean>(false)
+  const [particularData, setParticularData] = React.useState([])
+  const [showM, setShowM] = React.useState(false)
+  const [particularData1, setParticularData1] = React.useState([])
+  const [showM1, setShowM1] = React.useState(false)
 
   const {userInfo} = useContext(AuthContext);
   const user = JSON.parse(userInfo)
@@ -37,7 +45,7 @@ console.log("OP", user.payload.employee._id)
 			.catch((error: any) => {
 				console.log('employee detail error ==>', error);
 			});
-	}, [fetchAgain]);
+	}, [fetchAgain,showM1,showM]);
 
 
   const updateWorkStatus = async(id: any)=>{
@@ -60,20 +68,35 @@ console.log("OP", user.payload.employee._id)
     }
   }
   const [messageApi, contextHolder] = message.useMessage();
+
+  const openModal = (record: any)=>{
+	setShowM(!showM)
+	setParticularData(record)
+}
+
+  const openModal2 = (record: any)=>{
+	setShowM1(!showM1)
+	setParticularData(record)
+}
+
 	return (
 		<div>
+					<Modalf open={showM} setOpen={setShowM} user={particularData} title={'Your Download files'} data={1}/>
+					<Modalf open={showM1} setOpen={setShowM1} user={particularData} title={'Your upload files'} data={2}/>
+
 			{contextHolder}
-			<Divider orientation="left">Percentage columns</Divider>
+			<Divider orientation="left">Details</Divider>
 			{assignedWork?.length > 0?(
 				assignedWork?.map((e: any) => {
 					return (
 						<Row key={e._id}>
-							<Col span={6}>
+							<Col span={5}>
 								<p>{e.assignedItemId.item}</p>
 							</Col>
-							<Col span={8}>
+							<Col span={7}>
 								<Steps statusValue={setValueForStatus} initialStatus={e.status} />
 							</Col>
+							
 							<Col
 								style={{
 									display: 'flex',
@@ -86,34 +109,31 @@ console.log("OP", user.payload.employee._id)
 								<Button type="dashed" onClick={()=>updateWorkStatus(e._id)}>Submit</Button>
 	
 							</Col>
+						
 							<Col
 								style={{
 									// display: 'flex',
 									// justifyContent: 'center',
 								}}
 								span={4}
-							>
-								{/* <a href={`${e.file}`} download>{e.file}</a> */}
-								{/* <Link to={`/${e.file}/`} target="_blank" download>Download</Link> */}
-								{/* <ButtonNormal onClick={() =>handleDownload(e.file, 'Blank.pdf') }name="Download"/> */}
-								{/* <ButtonNormal onClick={() =>window.open(e.file, '_blank') }name="Download"/> */}
-								<div>Total files {e.file.length}</div>
-								<div style={{marginTop:'1rem'}}>
-								{e?.file?.map((e)=>{
-									// return 	<ButtonNormal onClick={() =>window.open(e, '_blank') }name="Download"/>
-									return (
-										<>
-										<div style={{display:'flex',justifyContent:'space-between'}}>
-										{e.match(/\.(jpeg|jpg|gif|png)$/) != null ?<p>image </p>:<p>pdf</p>}
-										{e.substring(32,47)}
-										<DownloadOutlined size={24}  onClick={() =>window.open(e, '_blank') }/>
-										</div>
-										{/* <p>{e}</p> */}
-										</>
-									)
-								})}
-								</div>
+							>						
+									<Button style={{fontSize:16}} onClick={()=>openModal(e)} icon={<DownloadOutlined/>}/>
+							
 							</Col>
+							<Col
+								style={{
+									display: 'flex',
+									flexDirection:'row',
+									justifyContent:'center',
+									// justifyContent: 'center',
+								}}
+						
+							>
+					
+								<Button style={{fontSize:16}} onClick={()=>openModal2(e)} icon={<UploadOutlined/>}/>
+	
+							</Col>
+							
 							<Divider/>
 						</Row>
 					);

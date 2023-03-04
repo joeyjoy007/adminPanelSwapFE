@@ -25,6 +25,10 @@ import Progress from '../helpers/tags/Progress';
 import UserTag from '../helpers/tags/UserTag';
 import { useLocation } from 'react-router-dom';
 import { getSingleClient } from '../../server/client/client';
+import {
+	DownloadOutlined 
+} from '@ant-design/icons'
+import Modalf from '../helpers/modal/Modal';
 
 interface Item {
 	_id: number;
@@ -103,11 +107,12 @@ const EditableCell: React.FC<EditableCellProps> = ({
 const ClientPanel: React.FC | any = ({employId}: any) => {
 	const location  = useLocation()
 	const [form] = Form.useForm();
-	// const [data, setData] = useState(dummyData);
+	const [showM, setShowM] = useState(false);
 	const [data, setData] = useState([]);
 	const [editingKey, setEditingKey] = useState<Number>(0);
 	const [count, setCount] = React.useState(3);
 	const [fetch1, setFetch1] = React.useState(false);
+	const [particularData, setParticularData] = useState([])
 
 	const isEditing = (record: Item) => record._id === editingKey;
 
@@ -130,7 +135,7 @@ const ClientPanel: React.FC | any = ({employId}: any) => {
 		const getItems = getSingleClient({_id:employId?employId:location.state.id})
 			.then((response: any) => {
 				setData(response.payload.myWorks);
-				console.log("REFfc",response.payload.myWorks)
+
 			})
 			.catch((Err) => {
 				console.log('error occured==>', Err);
@@ -151,7 +156,6 @@ const ClientPanel: React.FC | any = ({employId}: any) => {
 				item: row.item,
 			})
 				.then((response: any) => {
-					console.log('updated item==> ', response);
 					setEditingKey(0);
 					messageApi.success({
 						type: 'success',
@@ -233,7 +237,6 @@ const ClientPanel: React.FC | any = ({employId}: any) => {
 				const filtWork = record?.workBookings?.filter(
 					(e: any) => e?.selectedWork?.name === 'Script'
 				);
-				console.log("FIlttee",record);
 				return (
 					<div >
 						<div style={{ display:'flex' }}>
@@ -260,6 +263,9 @@ const ClientPanel: React.FC | any = ({employId}: any) => {
 								<span style={{alignSelf:"center"}}>
                   <UserTag text={filtWork?.[0]?.selectedEmployee.name}/>
 								</span>
+								<div>
+								<Button style={{fontSize:16}} onClick={()=>openModal(filtWork)} icon={<DownloadOutlined/>}/>
+						</div>
 							</div>
 						) : null}
 					</div>
@@ -301,6 +307,10 @@ const ClientPanel: React.FC | any = ({employId}: any) => {
 								<span style={{alignSelf:"center"}}>
                   <UserTag text={filtWork?.[0]?.selectedEmployee.name}/>
 								</span>
+								
+								<div>
+								<Button style={{fontSize:16}} onClick={()=>openModal(filtWork)} icon={<DownloadOutlined/>}/>
+						</div>
 							</div>
 						) : null}
 					</div>
@@ -317,7 +327,7 @@ const ClientPanel: React.FC | any = ({employId}: any) => {
 					(e: any) => e.selectedWork.name === 'Video'
 				);
         return (
-					<div >
+					<div  >
 						<div style={{ display:'flex' }}>
 						
 							{filtWork?.[0]?.status === 'pending' ? (
@@ -342,8 +352,12 @@ const ClientPanel: React.FC | any = ({employId}: any) => {
 								<span style={{alignSelf:"center"}}>
                   <UserTag text={filtWork?.[0]?.selectedEmployee.name}/>
 								</span>
+								<div>
+								<Button style={{fontSize:16}} onClick={()=>openModal(filtWork)} icon={<DownloadOutlined/>}/>
+						</div>
 							</div>
 						) : null}
+					
 					</div>
 				);
 			},
@@ -383,6 +397,10 @@ const ClientPanel: React.FC | any = ({employId}: any) => {
 								<span style={{alignSelf:"center"}}>
                   <UserTag text={filtWork?.[0]?.selectedEmployee.name}/>
 								</span>
+								<div>
+					<Button style={{fontSize:16}} onClick={()=>openModal(filtWork)} icon={<DownloadOutlined/>}/>
+
+						</div>
 							</div>
 						) : null}
 					</div>
@@ -392,6 +410,11 @@ const ClientPanel: React.FC | any = ({employId}: any) => {
 		},
 	
 	];
+
+	const openModal = (record: any)=>{
+		setShowM(!showM)
+		setParticularData(record)
+	}
 
 	const deleteAllWork = async (record: Item | any) => {
 		try {
@@ -488,6 +511,7 @@ const ClientPanel: React.FC | any = ({employId}: any) => {
 	return (
 		<>
 			{contextHolder}
+			<Modalf open={showM} setOpen={setShowM} user={particularData[0]} title={'Your Download files'} data={0}/>
 			<Form form={form} component={false}>
 				<Table
 					components={{

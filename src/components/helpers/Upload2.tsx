@@ -4,7 +4,7 @@ import { Button, message, Upload } from 'antd';
 import type { RcFile, UploadFile, UploadProps } from 'antd/es/upload/interface';
 import axios from 'axios';
 
-const UploadF: React.FC | any= ({item}:any) => {
+const UploadF2: React.FC | any= ({item}:any) => {
   const [fileList, setFileList] = useState<UploadFile[]>([]);
   const [uploading, setUploading] = useState(false);
 
@@ -13,14 +13,14 @@ const UploadF: React.FC | any= ({item}:any) => {
     fileList.forEach((file) => {
       formData.append('file', file as RcFile);
     })
-    formData.append('_id', item[0]._id);
+    formData.append('_id', item._id);
     setUploading(true);
     // You can use any AJAX library you like
 
 
     axios({
       method: "patch",
-      url: 'http://localhost:8080/createWork/u',
+      url: 'http://localhost:8080/createWork/upload',
       data: formData,
       headers: { "Content-Type": "multipart/form-data" },
     })
@@ -74,4 +74,4 @@ console.log("J",o);
   );
 };
 
-export default UploadF;
+export default UploadF2;

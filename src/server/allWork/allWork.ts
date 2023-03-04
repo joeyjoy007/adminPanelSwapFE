@@ -13,4 +13,9 @@ export const deleteItems = async (data) => {
   return await axios.put('/createWork',data);
 };
 
+export const deleteCompleteFile = async (data) => {
+  console.log("Data",data);
+  return await axios.patch('/createWork/deleteCompleted',data);
+};
+
 
