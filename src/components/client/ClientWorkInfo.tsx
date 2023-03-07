@@ -27,6 +27,11 @@ import Progress from '../helpers/tags/Progress';
 import UserTag from '../helpers/tags/UserTag';
 import { useLocation } from 'react-router-dom';
 import { getSingleClient } from '../../server/client/client';
+import Modalf from '../helpers/modal/Modal';
+import {
+	DownloadOutlined,
+	UploadOutlined
+} from '@ant-design/icons';
 
 interface Item {
 	_id: number;
@@ -105,12 +110,15 @@ const EditableCell: React.FC<EditableCellProps> = ({
 const ClientWorkInfo: React.FC | any = ({employId}: any) => {
 	const location  = useLocation()
 	const [form] = Form.useForm();
-	// const [data, setData] = useState(dummyData);
+	const [showM, setShowM] = React.useState<Boolean>(false)
 	const [data, setData] = useState([]);
-	const [editingKey, setEditingKey] = useState<Number>(0);
+	const [particularData, setParticularData] = React.useState<any>([])
+	const [editingKey, setEditingKey] = React.useState<Number>(0);
 	const [count, setCount] = React.useState(3);
 	const [fetch1, setFetch1] = React.useState(false);
 
+
+	console.log("EMPLOYy",employId);
 	const isEditing = (record: Item) => record._id === editingKey;
 
 	const edit = (record: Partial<Item> & { _id: React.Key }) => {
@@ -137,7 +145,7 @@ const ClientWorkInfo: React.FC | any = ({employId}: any) => {
 			.catch((Err) => {
 				console.log('error occured==>', Err);
 			});
-	}, [editingKey, count, fetchAgain, fetch1]);
+	}, [editingKey, count, fetchAgain, fetch1,showM]);
 
 	const cancel = () => {
 		setEditingKey(0);
@@ -286,7 +294,8 @@ const ClientWorkInfo: React.FC | any = ({employId}: any) => {
 								<span style={{alignSelf:"center"}}>
                   <UserTag text={filtWork?.[0]?.selectedEmployee.name}/>
 								</span>
-								<UploadF item={filtWork} />
+								{/* <UploadF item={filtWork} /> */}
+								<Button style={{fontSize:16}} onClick={()=>openModal(filtWork)} icon={<UploadOutlined/>}/>
 							</div>
 						) : null}
 					</div>
@@ -531,13 +540,13 @@ const ClientWorkInfo: React.FC | any = ({employId}: any) => {
 	});
 
 	const handleAdd = () => {
-		if(!location?.state?.id){
+		if(!location?.state?.id && !employId){
 			message.error({
 				type:"error",
 				content:"No client selected"
 			})
 		}else{
-			const createWork = createAssignWork({client:location?.state?.id})
+			const createWork = createAssignWork({client:employId?employId:location?.state?.id})
 			.then((response: any) => {
 				console.log('response add ==>', response);
 				messageApi.success({
@@ -578,9 +587,17 @@ const ClientWorkInfo: React.FC | any = ({employId}: any) => {
 	// };
 	const [messageApi, contextHolder] = message.useMessage();
 
+	const openModal = (record: any)=>{
+		setShowM(!showM)
+		setParticularData(record)
+	}
+	
+
 	return (
 		<>
 			{contextHolder}
+			<Modalf open={showM} setOpen={setShowM} user={particularData} title={'Your uploaded files'} data={3}/>
+
 			<Form form={form} component={false}>
 				<Button
 					onClick={handleAdd}
