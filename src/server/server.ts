@@ -1,7 +1,8 @@
 import axios from 'axios';
 // import { success } from '../components/ALert/index';
 
-export const apiEndPoint = 'http://192.168.29.82:8080';
+export const apiEndPoint = 'https://arceditz.onrender.com';
+// export const apiEndPoint = 'http://192.168.233.78:8080';
 
 const handleError = (error: { isAxiosError: any; response: { data: any } }) => {
     let message = '';

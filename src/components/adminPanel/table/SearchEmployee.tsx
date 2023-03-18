@@ -3,23 +3,26 @@ import { getEmployee } from "../../../server/employee/employee"
 import { assignWork, selectEmployeeForWork } from "../../../server/workAssign/workAssign"
 import { AuthContext } from "../../../context/context"
 import { allworkCreate } from "../../../server/allWork/allWork"
-import { message } from "antd"
+import { Spin, Tag, message } from "antd"
+import EmployeUi from "./SearchEmployeeUi"
 
 /* eslint-disable jsx-a11y/anchor-is-valid */
 const SearchEmployee:any = ({workName,setOpenModal,record}:any) => {
 
-    const employee = [1,2,3,4,5,6,7,8,9,0,11,22,33,44,55,66]
     const [employeeName, setEmployeeName] = React.useState([])
+    const [loading, setLoading] = React.useState(false)
 
     const {setFetchAgain,fetchAgain}: any = useContext(AuthContext);
 
 
 
     const selectForWork = async(e)=>{
+      setLoading(true)
       try {
         const work = await allworkCreate({assignedItemId:record._id, selectedEmployee:e._id,
         selectedWork:workName._id,
         status:"pending"}).then((response: any)=>{
+          setLoading(false)
           console.log("Response om select work ==> ",response);
           setOpenModal(false)
           setFetchAgain(!fetchAgain)
@@ -28,6 +31,7 @@ const SearchEmployee:any = ({workName,setOpenModal,record}:any) => {
             content:"Employee assigned"
            });
         }).catch((err)=>{
+          setLoading(false)
           console.log("error occured ==> ",err.message)
           setOpenModal(false)
           setFetchAgain(!fetchAgain)
@@ -38,6 +42,7 @@ const SearchEmployee:any = ({workName,setOpenModal,record}:any) => {
 
         })
       } catch (error) {
+        setLoading(false)
         console.log("Error in select work ==>",error)
         setOpenModal(false)
         setFetchAgain(!fetchAgain)
@@ -49,14 +54,17 @@ const SearchEmployee:any = ({workName,setOpenModal,record}:any) => {
     }
 
     React.useEffect(() => {
+      setLoading(true)
       try {
         const employee = getEmployee().then((res:any)=>{
-          console.log("Response==>",res.payload);
+          setLoading(false)
           setEmployeeName(res.payload)
         }).catch((err)=>{
+          setLoading(false)
           console.log("error==> ",err)
         })
       } catch (error) {
+        setLoading(false)
         console.log("error occured ==>",error);
       }
     }, [])
@@ -65,14 +73,22 @@ const SearchEmployee:any = ({workName,setOpenModal,record}:any) => {
 
 
   return (
-    <div style={{display:"flex",flexWrap:"wrap",justifyContent:"space-between"}}>
-      {contextHolder}
-    {employeeName.map((e:any)=>{
-        return <a key={e._id} onClick={()=>selectForWork(e)} style={{border:'1px solid black',height:30,borderRadius:1,width:'8rem',marginTop:'3%',alignSelf:'center',justifyContent:'center',alignItems:'center',color:"#222222"}}>
-              <p style={{textAlign:'center'}}>{e.name}</p>
+    <div style={{flexWrap:"wrap",justifyContent:"space-between"}}>
+   {loading?(
+    <Spin/>
+   ):(
+    <>
+       {contextHolder}
+      {employeeName.map((e:any)=>{
+        return <a key={e._id} onClick={()=>selectForWork(e)} style={{height:30,borderRadius:1,width:'8rem',marginTop:'3%',alignSelf:'center',justifyContent:'center',alignItems:'center',color:"#222222"}}>
+              {/* <p style={{textAlign:'center'}}>{e.name}</p> */}
+              <Tag>{e.name}</Tag>
                </a>
       
     })}
+      <EmployeUi onClick={selectForWork} employees={employeeName}/>
+    </>
+   )}
     </div>
   )
 }

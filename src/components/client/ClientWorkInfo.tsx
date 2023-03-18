@@ -6,6 +6,7 @@ import {
 	Input,
 	InputNumber,
 	Popconfirm,
+	Spin,
 	Table,
 	Typography,
 	message,
@@ -28,6 +29,7 @@ import UserTag from '../helpers/tags/UserTag';
 import { useLocation } from 'react-router-dom';
 import { getSingleClient } from '../../server/client/client';
 import Modalf from '../helpers/modal/Modal';
+import type { ColumnsType } from 'antd/es/table';
 import {
 	DownloadOutlined,
 	UploadOutlined
@@ -40,26 +42,13 @@ interface Item {
 	voice_over: string;
 	video: string;
 	thumbnail: string;
+	date:string,
+	text1:string;
+	text2:string;
+	text3:string;
+	text4:string;
 }
 
-const dummyData = [
-	{
-		_id: 1,
-		item: 'Jerry',
-		script: 'Done',
-		voice_over: 'New yourk',
-		video: 'Done',
-		thumbnail: 'Done',
-	},
-	{
-		_id: 2,
-		item: 'Tom',
-		script: 'Dione',
-		voice_over: 'Australia',
-		video: 'Done',
-		thumbnail: 'done',
-	},
-];
 
 interface EditableCellProps extends React.HTMLAttributes<HTMLElement> {
 	editing: boolean;
@@ -116,6 +105,7 @@ const ClientWorkInfo: React.FC | any = ({employId}: any) => {
 	const [editingKey, setEditingKey] = React.useState<Number>(0);
 	const [count, setCount] = React.useState(3);
 	const [fetch1, setFetch1] = React.useState(false);
+	const [loading, setLoading] = React.useState(false)
 
 
 	console.log("EMPLOYy",employId);
@@ -128,6 +118,11 @@ const ClientWorkInfo: React.FC | any = ({employId}: any) => {
 			voice_over: '',
 			video: '',
 			thumbnail: '',
+			date:'',
+			text1:'',
+			text2:'',
+			text3:'',
+			text4:'',
 			...record,
 		});
 		setEditingKey(record._id);
@@ -137,12 +132,14 @@ const ClientWorkInfo: React.FC | any = ({employId}: any) => {
 
 	React.useEffect(() => {
 		// const getItems = getAssignWork()
+		setLoading(true)
 		const getItems = getSingleClient({_id:employId?employId:location.state.id})
 			.then((response: any) => {
 				setData(response.payload.myWorks);
-				console.log("REFfc",response.payload.myWorks)
+				setLoading(false)
 			})
 			.catch((Err) => {
+				setLoading(false)
 				console.log('error occured==>', Err);
 			});
 	}, [editingKey, count, fetchAgain, fetch1,showM]);
@@ -154,21 +151,29 @@ const ClientWorkInfo: React.FC | any = ({employId}: any) => {
 	const save = async (_id: React.Key, record) => {
 		try {
 			// console.log("Record",...data)
-
+			setLoading(true)
 			const row = (await form.validateFields()) as Item;
+			console.log("ROWW",row);
 			const work = updateAssignWork({
 				itemId: record._id,
 				item: row.item,
+				date:row.date,
+				text1:row.text1,
+				text2:row.text2,
+				text3:row.text3,
+				text4:row.text4
 			})
 				.then((response: any) => {
-					console.log('updated item==> ', response);
 					setEditingKey(0);
+					setLoading(false)
 					messageApi.success({
 						type: 'success',
 						content: 'Work Saved',
 					});
+
 				})
 				.catch((err: any) => {
+					setLoading(false)
 					messageApi.error({
 						type: 'error',
 						content: 'Work not saved',
@@ -197,6 +202,7 @@ const ClientWorkInfo: React.FC | any = ({employId}: any) => {
 	};
 
 	const deleteWorkEmployee = async (filtWork) => {
+		setLoading(true)
 		try {
 			const deleteitem = await deleteItems({
 				itemId: filtWork?.[0].assignedItemId,
@@ -204,6 +210,7 @@ const ClientWorkInfo: React.FC | any = ({employId}: any) => {
 				empId: filtWork?.[0].selectedEmployee._id,
 			})
 				.then(() => {
+					setLoading(false)
 					messageApi.success({
 						type: 'success',
 						content: 'Item deleted',
@@ -211,13 +218,15 @@ const ClientWorkInfo: React.FC | any = ({employId}: any) => {
 					setFetch1(!fetch1);
 				})
 				.catch((err) => {
+					setLoading(false)
 					messageApi.error({
 						type: 'error',
-						content: err.message,
+						content:"ds",
 					});
 					setFetch1(!fetch1);
 				});
 		} catch (error) {
+			setLoading(false)
 			messageApi.error({
 				type: 'error',
 				content: error.message,
@@ -226,17 +235,18 @@ const ClientWorkInfo: React.FC | any = ({employId}: any) => {
 		}
 	};
 
-	const columns = [
+	const columns: ColumnsType<Item> | any = [
 		{
 			title: 'Item',
 			dataIndex: 'item',
 			width: '20%',
 			editable: true,
+			fixed:"left"
 		},
 		{
 			title: 'Employee',
 			dataIndex: 'select_employee',
-			width: '5%',
+			width: '20%',
 			render: (_: any, record: Item) => {
 				const editable = isEditing(record);
 				return editable ? (
@@ -252,18 +262,126 @@ const ClientWorkInfo: React.FC | any = ({employId}: any) => {
 			},
 		},
 		{
+			title: 'Date',
+			dataIndex: 'date',
+			width: '18%',
+			editable: true,
+
+		},
+		{
 			title: 'Script',
-			width: '13%',
+			width: '20%',
 			dataIndex: 'script',
+			backgroundColor:"red",
       
 			render: (_: any, record: any) => {
 				const filtWork = record?.workBookings?.filter(
 					(e: any) => e?.selectedWork?.name === 'Script'
 				);
-				console.log("FIlttee",record);
 				return (
+					<div>
+						<div style={{ display:'flex',justifyContent:"space-between"}}>
+						
+							{filtWork?.[0]?.status === 'pending' ? (
+								<Pending text="Pending" />
+							) : filtWork?.[0]?.status === 'inProgress' ? (
+								<Progress text="Progress" />
+							) : filtWork?.[0]?.status === 'completed' ? (
+								<Completed text="Completed" />
+							) : (
+								'Not assigned'
+							)}
+              	{filtWork?.length === 0 ? null : (
+								<a
+									onClick={() => deleteWorkEmployee(filtWork)}
+									// style={{ float: 'right' }}
+								>
+									<CloseCircleOutlined />
+								</a>
+							)}
+						</div>
+
+						{filtWork?.[0]?.status ? (
+							<div
+								style={{
+									display: 'flex',
+									justifyContent: 'space-between',
+									// float:"right"
+								}}
+							>
+								<span style={{alignSelf:"center"}}>
+                  <UserTag text={filtWork?.[0]?.selectedEmployee.name}/>
+								</span>
+								{/* <UploadF item={filtWork} /> */}
+								<Button style={{fontSize:16}} onClick={()=>openModal(filtWork)} icon={<UploadOutlined/>}/>
+							</div>
+						) : null}
+					</div>
+				);
+			},
+			key: 'script',
+		},
+		{
+			title: 'Voice over',
+			width: '20%',
+			dataIndex: 'script',
+			render: (_: any, record: any) => {
+				const filtWork = record?.workBookings?.filter(
+					(e: any) => e.selectedWork.name === 'Voice over'
+				);
+        return (
 					<div >
-						<div style={{ display:'flex' }}>
+						<div style={{ display:'flex',justifyContent:"space-between" }}>
+						
+							{filtWork?.[0]?.status === 'pending' ? (
+								<Pending text="Pending" />
+							) : filtWork?.[0]?.status === 'inProgress' ? (
+								<Progress text="Progress" />
+							) : filtWork?.[0]?.status === 'completed' ? (
+								<Completed text="Completed" />
+							) : (
+								'Not assigned'
+							)}
+              	{filtWork?.length === 0 ? null : (
+								<a
+									onClick={() => deleteWorkEmployee(filtWork)}
+									style={{ float: 'right' }}
+								>
+									<CloseCircleOutlined  />
+								</a>
+							)}
+						</div>
+
+						{filtWork?.[0]?.status ? (
+							<div
+								style={{
+									display: 'flex',
+									justifyContent: 'space-between',
+								}}
+							>
+								<span style={{alignSelf:"center"}}>
+                  <UserTag text={filtWork?.[0]?.selectedEmployee.name}/>
+								</span>
+								{/* <UploadF item={filtWork} /> */}
+								<Button style={{fontSize:16}} onClick={()=>openModal(filtWork)} icon={<UploadOutlined/>}/>
+							</div>
+						) : null}
+					</div>
+				);
+			},
+			key: 'voice_over',
+		},
+		{
+			title: 'Video',
+			width: '20%',
+			dataIndex: 'video',
+			render: (_: any, record: any) => {
+				const filtWork = record?.workBookings?.filter(
+					(e: any) => e.selectedWork.name === 'Video'
+				);
+        return (
+					<div >
+						<div style={{ display:'flex',justifyContent:"space-between" }}>
 						
 							{filtWork?.[0]?.status === 'pending' ? (
 								<Pending text="Pending" />
@@ -296,104 +414,7 @@ const ClientWorkInfo: React.FC | any = ({employId}: any) => {
 								</span>
 								{/* <UploadF item={filtWork} /> */}
 								<Button style={{fontSize:16}} onClick={()=>openModal(filtWork)} icon={<UploadOutlined/>}/>
-							</div>
-						) : null}
-					</div>
-				);
-			},
-			key: 'script',
-		},
-		{
-			title: 'Voice over',
-			width: '13%',
-			dataIndex: 'script',
-			render: (_: any, record: any) => {
-				const filtWork = record?.workBookings?.filter(
-					(e: any) => e.selectedWork.name === 'Voice over'
-				);
-        return (
-					<div >
-						<div style={{ display:'flex' }}>
-						
-							{filtWork?.[0]?.status === 'pending' ? (
-								<Pending text="Pending" />
-							) : filtWork?.[0]?.status === 'inProgress' ? (
-								<Progress text="Progress" />
-							) : filtWork?.[0]?.status === 'completed' ? (
-								<Completed text="Completed" />
-							) : (
-								'Not assigned'
-							)}
-              	{filtWork?.length === 0 ? null : (
-								<a
-									onClick={() => deleteWorkEmployee(filtWork)}
-									style={{ float: 'right' }}
-								>
-									<CloseCircleOutlined  />
-								</a>
-							)}
-						</div>
 
-						{filtWork?.[0]?.status ? (
-							<div
-								style={{
-									display: 'flex',
-									justifyContent: 'space-between',
-								}}
-							>
-								<span style={{alignSelf:"center"}}>
-                  <UserTag text={filtWork?.[0]?.selectedEmployee.name}/>
-								</span>
-								<UploadF item={filtWork} />
-							</div>
-						) : null}
-					</div>
-				);
-			},
-			key: 'voice_over',
-		},
-		{
-			title: 'Video',
-			width: '13%',
-			dataIndex: 'video',
-			render: (_: any, record: any) => {
-				const filtWork = record?.workBookings?.filter(
-					(e: any) => e.selectedWork.name === 'Video'
-				);
-        return (
-					<div >
-						<div style={{ display:'flex' }}>
-						
-							{filtWork?.[0]?.status === 'pending' ? (
-								<Pending text="Pending" />
-							) : filtWork?.[0]?.status === 'inProgress' ? (
-								<Progress text="Progress" />
-							) : filtWork?.[0]?.status === 'completed' ? (
-								<Completed text="Completed" />
-							) : (
-								'Not assigned'
-							)}
-              	{filtWork?.length === 0 ? null : (
-								<a
-									onClick={() => deleteWorkEmployee(filtWork)}
-									style={{ float: 'right' }}
-								>
-									<CloseCircleOutlined />
-								</a>
-							)}
-						</div>
-
-						{filtWork?.[0]?.status ? (
-							<div
-								style={{
-									display: 'flex',
-									justifyContent: 'space-between',
-								}}
-							>
-								<span style={{alignSelf:"center"}}>
-                  <UserTag text={filtWork?.[0]?.selectedEmployee.name}/>
-								</span>
-								<UploadF item={filtWork} />
 							</div>
 						) : null}
 					</div>
@@ -403,7 +424,7 @@ const ClientWorkInfo: React.FC | any = ({employId}: any) => {
 		},
 		{
 			title: 'Thumbnail',
-			width: '13%',
+			width: '20%',
 			dataIndex: 'thumbnail',
 			render: (_: any, record: any) => {
 				const filtWork = record?.workBookings?.filter(
@@ -411,7 +432,7 @@ const ClientWorkInfo: React.FC | any = ({employId}: any) => {
 				);
         return (
 					<div >
-						<div style={{ display:'flex' }}>
+						<div style={{ display:'flex',justifyContent:"space-between" }}>
 						
 							{filtWork?.[0]?.status === 'pending' ? (
 								<Pending text="Pending" />
@@ -442,7 +463,9 @@ const ClientWorkInfo: React.FC | any = ({employId}: any) => {
 								<span style={{alignSelf:"center"}}>
                   <UserTag text={filtWork?.[0]?.selectedEmployee.name}/>
 								</span>
-								<UploadF item={filtWork} />
+								{/* <UploadF item={filtWork} /> */}
+								<Button style={{fontSize:16}} onClick={()=>openModal(filtWork)} icon={<UploadOutlined/>}/>
+
 							</div>
 						) : null}
 					</div>
@@ -451,8 +474,38 @@ const ClientWorkInfo: React.FC | any = ({employId}: any) => {
 			key: 'voice_over',
 		},
 		{
+			title: 'Text',
+			dataIndex: 'text1',
+			width: '20%',
+			editable: true,
+
+		},
+		{
+			title: 'Text',
+			dataIndex: 'text2',
+			width: '20%',
+			editable: true,
+
+		},
+		{
+			title: 'Text',
+			dataIndex: 'text3',
+			width: '20%',
+			editable: true,
+
+		},
+		{
+			title: 'Text',
+			dataIndex: 'text4',
+			width: '20%',
+			editable: true,
+
+		},
+		{
 			title: 'operation',
 			dataIndex: 'operation',
+			width:'15%',
+			fixed:'right',
 			render: (_: any, record: Item) => {
 				const editable = isEditing(record);
 				return editable ? (
@@ -493,13 +546,17 @@ const ClientWorkInfo: React.FC | any = ({employId}: any) => {
 				);
 			},
 		},
+
+
 	];
 
 	const deleteAllWork = async (record: Item | any) => {
+		setLoading(true)
+
 		try {
 			const deleteItem = await deleteWork({ _id: record._id ,client:record.client})
 				.then((response: any) => {
-					console.log('Delete Response ==> ', response);
+					setLoading(false)
 					setCount(count - 1);
 					messageApi.success({
 						type: 'success',
@@ -508,6 +565,7 @@ const ClientWorkInfo: React.FC | any = ({employId}: any) => {
 					setFetch1(!fetch1);
 				})
 				.catch((error) => {
+					setLoading(false)
 					messageApi.error({
 						type: 'error',
 						content: 'Internal server error',
@@ -515,6 +573,7 @@ const ClientWorkInfo: React.FC | any = ({employId}: any) => {
 				});
 			setFetch1(!fetch1);
 		} catch (error) {
+			setLoading(false)
 			messageApi.error({
 				type: 'error',
 				content: 'Work not deleted ',
@@ -569,6 +628,11 @@ const ClientWorkInfo: React.FC | any = ({employId}: any) => {
 			voice_over: 'sdf',
 			video: 'sdf',
 			thumbnail: 'sdf',
+			date:'date1',
+			text1:'text1',
+			text2:'text2',
+			text3:'text3',
+			text4:'text4'
 		};
 		setData([...data, newData]);
 		setCount(count + 1);
@@ -595,6 +659,11 @@ const ClientWorkInfo: React.FC | any = ({employId}: any) => {
 
 	return (
 		<>
+			{loading?(
+				<div style={{display:"flex",flex:1,height:400,justifyContent:"center",alignItems:"center"}}>
+					<Spin/>
+				</div>
+			):(<>
 			{contextHolder}
 			<Modalf open={showM} setOpen={setShowM} user={particularData} title={'Your uploaded files'} data={3}/>
 
@@ -615,6 +684,7 @@ const ClientWorkInfo: React.FC | any = ({employId}: any) => {
 					bordered
 					dataSource={data}
 					columns={mergedColumns}
+					scroll={{x:2000}}
 					rowClassName="editable-row"
 					pagination={{
 						onChange: cancel,
@@ -622,6 +692,7 @@ const ClientWorkInfo: React.FC | any = ({employId}: any) => {
 					//  expandable={{ expandedRowRender: (record: any) => <p>{record.workBookings._id}</p> }}
 				/>
 			</Form>
+			</>)}
 		</>
 	);
 };

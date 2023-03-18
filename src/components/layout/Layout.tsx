@@ -2,21 +2,15 @@
 /* eslint-disable @typescript-eslint/no-unused-expressions */
 import React, { useContext, useState } from 'react';
 import {
-	DesktopOutlined,
-	FileOutlined,
 	PieChartOutlined,
-	TeamOutlined,
-	UserOutlined,
 } from '@ant-design/icons';
 import { MenuProps, message } from 'antd';
 import { Breadcrumb, Layout, Menu, theme } from 'antd';
-import DataTable from '../adminPanel/table/DataTable';
 import Avatar1 from '../helpers/Avatar';
-import { Route, Routes, useNavigate, useNavigation } from 'react-router-dom';
+import { Route, Routes, useNavigate } from 'react-router-dom';
 import AdminEmployeePage from '../adminPanel/employeePage/AdminEmployeePage';
 import { AuthContext } from '../../context/context';
 import EmployeePanel from '../employee/EmployeePanel';
-import WorkToComplete from '../employee/WorkToComplete';
 import AdminEmployeeRegister from '../adminPanel/employeePage/EmployeeRegister';
 import ClientPanel from '../adminPanel/ClientPanel';
 import AdminClientRegister from '../adminPanel/client/AdminClientRegister';
@@ -62,13 +56,17 @@ const Panel: React.FC | any = (props) => {
 				collapsed={collapsed}
 				onCollapse={(value) => setCollapsed(value)}
 			>
-				<div
+				<h3
 					style={{
 						height: 32,
 						margin: 16,
 						background: 'rgba(255, 255, 255, 0.2)',
+						color:"#ffffff",
+						display:"flex",
+						justifyContent:"center",
+						alignItems:"center"
 					}}
-				/>
+				>Arceditz</h3>
 				<Menu
 					items={
 						userRole === 'admin'

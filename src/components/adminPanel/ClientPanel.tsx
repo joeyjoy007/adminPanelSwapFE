@@ -6,6 +6,7 @@ import {
 	Input,
 	InputNumber,
 	Popconfirm,
+	Spin,
 	Table,
 	Typography,
 	message,
@@ -113,6 +114,7 @@ const ClientPanel: React.FC | any = ({employId}: any) => {
 	const [count, setCount] = React.useState(3);
 	const [fetch1, setFetch1] = React.useState(false);
 	const [particularData, setParticularData] = useState([])
+	const [loading, setLoading] = React.useState(false)
 
 	const isEditing = (record: Item) => record._id === editingKey;
 
@@ -132,12 +134,15 @@ const ClientPanel: React.FC | any = ({employId}: any) => {
 
 	React.useEffect(() => {
 		// const getItems = getAssignWork()
+		setLoading(true)
 		const getItems = getSingleClient({_id:employId?employId:location.state.id})
 			.then((response: any) => {
+				setLoading(false)
 				setData(response.payload.myWorks);
 
 			})
 			.catch((Err) => {
+				setLoading(false)
 				console.log('error occured==>', Err);
 			});
 	}, [editingKey, count, fetchAgain, fetch1]);
@@ -413,6 +418,7 @@ const ClientPanel: React.FC | any = ({employId}: any) => {
 
 	const openModal = (record: any)=>{
 		setShowM(!showM)
+		console.log("RECORD",record)
 		setParticularData(record)
 	}
 
@@ -510,7 +516,11 @@ const ClientPanel: React.FC | any = ({employId}: any) => {
 
 	return (
 		<>
-			{contextHolder}
+			{loading?(
+				<Spin/>
+			):(
+				<>
+				{contextHolder}
 			<Modalf open={showM} setOpen={setShowM} user={particularData[0]} title={'Your Download files'} data={0}/>
 			<Form form={form} component={false}>
 				<Table
@@ -529,6 +539,8 @@ const ClientPanel: React.FC | any = ({employId}: any) => {
 					//  expandable={{ expandedRowRender: (record: any) => <p>{record.workBookings._id}</p> }}
 				/>
 			</Form>
+				</>
+			)}
 		</>
 	);
 };

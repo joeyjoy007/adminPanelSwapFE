@@ -57,6 +57,7 @@ export const AuthProvider:any = ({ children }:any) => {
                 localStorage.setItem('userInfo',JSON.stringify(response))
                 localStorage.setItem('userToken',response.payload.token)
                 localStorage.setItem('userRole',response.payload.employee.role)
+                setIsLoading(false);
                 messageApi.success({
                     type:"success",
                     content:"Login success"
@@ -70,6 +71,7 @@ export const AuthProvider:any = ({ children }:any) => {
                 localStorage.setItem('userInfo',JSON.stringify(response))
                 localStorage.setItem('userToken',response.payload.token)
                 localStorage.setItem('userRole',response.payload.client.role)
+                setIsLoading(false);
                 messageApi.success({
                     type:"success",
                     content:"Login success"
@@ -116,6 +118,7 @@ export const AuthProvider:any = ({ children }:any) => {
                 setUserToken(userToken);
                 setUserRole(userRole);
                 setUserInfo(userInfo);
+                
                 // messageApi.info({
                 //     type:"info",
                 //     content:"Welcome"
@@ -123,6 +126,7 @@ export const AuthProvider:any = ({ children }:any) => {
             }
             setIsLoading(false);
         } catch (error: any) {
+            setIsLoading(false);
             messageApi.error({
                 type:"error",
                 content:error.message

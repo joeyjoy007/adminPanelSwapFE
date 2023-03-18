@@ -1,5 +1,5 @@
 import React, { useContext } from 'react';
-import { Button, Col, Divider, Row, message } from 'antd';
+import { Button, Col, Divider, Row, Spin, message } from 'antd';
 import Steps from './Steps';
 import { SmoothProvider } from 'react-smooth-scrolling';
 import ButtonNormal from '../helpers/Buttons/ButtonNormal';
@@ -25,17 +25,19 @@ const EmployeePanel: React.FC = () => {
   const [showM, setShowM] = React.useState(false)
   const [particularData1, setParticularData1] = React.useState([])
   const [showM1, setShowM1] = React.useState(false)
+  const [loading, setLoading] = React.useState(false)
 
   const {userInfo} = useContext(AuthContext);
   const user = JSON.parse(userInfo)
 console.log("OP", user.payload.employee._id)
 
 	React.useEffect(() => {
-		console.log("11")
+		setLoading(true)
 		const employeeDetail = getEmployeeDetail({
 			_id: user.payload.employee._id,
 		})
 			.then((response: any) => {
+				setLoading(false)
 				console.log(
 					'Employee Response=> ',
 					response.payload.assignedWork
@@ -43,24 +45,29 @@ console.log("OP", user.payload.employee._id)
 				setAssignedWork(response.payload.assignedWork);
 			})
 			.catch((error: any) => {
+				setLoading(false)
 				console.log('employee detail error ==>', error);
 			});
 	}, [fetchAgain,showM1,showM]);
 
 
   const updateWorkStatus = async(id: any)=>{
+	setLoading(true)
     try {
       const update = updateStatus({_id:id,status:valueForStatus}).then((response: any)=>{
-        console.log("Update response ==> ",response)
+
 		messageApi.success({
             type:"success",
             content:"status updated"
            });
+		   setLoading(false)
         setFetchAgain(!fetchAgain)
       }).catch((err)=>{
+		setLoading(false)
         console.log("error ==>",err.message);
       })
     } catch (error) {
+		setLoading(false)
         messageApi.error({
             type:"error",
             content:error.message
@@ -76,12 +83,20 @@ console.log("OP", user.payload.employee._id)
 
   const openModal2 = (record: any)=>{
 	setShowM1(!showM1)
+	console.log("RECord")
 	setParticularData(record)
 }
 
 	return (
-		<div>
-					<Modalf open={showM} setOpen={setShowM} user={particularData} title={'Your Download files'} data={1}/>
+		<div>{
+			loading?(
+				<div style={{display:"flex",height:400,justifyContent:"center",alignItems:"center"}}>
+					<Spin/>
+				</div>
+			):(
+				<>
+				
+				<Modalf open={showM} setOpen={setShowM} user={particularData} title={'Your Download files'} data={1}/>
 					<Modalf open={showM1} setOpen={setShowM1} user={particularData} title={'Your upload files'} data={2}/>
 
 			{contextHolder}
@@ -144,7 +159,9 @@ console.log("OP", user.payload.employee._id)
 				</p>
 			)}
 		
-		</div>
+
+				</>
+			)}		</div>
 	);
 };
 function checkURL(url) {

@@ -1,11 +1,7 @@
 import React from 'react';
 import { Button, Checkbox, Form, FormInstance, Input, message } from 'antd';
 import { createEmployee } from '../../../server/employee/employee';
-
-
-
-
-
+import { loadavg } from 'os';
 
 
 const onFinishFailed = (errorInfo: any) => {
@@ -13,28 +9,29 @@ const onFinishFailed = (errorInfo: any) => {
 };
 
 
-
-
-
 const AdminEmployeeRegister: React.FC = () => {
+const [laoding, setLaoding] = React.useState(false)
     const formRef:any = React.useRef<FormInstance>(null);
 
     const onFinish = async(values: any) => {
+      setLaoding(true)
         try {
-          console.log(1);
           const employee = await createEmployee({...values,role:"employee"}).then((response: any)=>{
            messageApi.success({
             type:"success",
             content:"Registration success"
            });
+           setLaoding(false)
             formRef.current?.resetFields();
           }).catch((err)=>{
+            setLaoding(false)
             messageApi.error({
                 type:"error",
                 content:"Registration unsuccessfull "
                });
           })
         } catch (error) {
+          setLaoding(false)
           console.log("Error occured ==> ",error)
         }
       };
@@ -91,7 +88,7 @@ return (
 
 
     <Form.Item wrapperCol={{ offset: 8, span: 16 }}>
-      <Button type="primary" htmlType="submit">
+      <Button type="primary" htmlType="submit" block loading={laoding}>
         Submit
       </Button>
     </Form.Item>

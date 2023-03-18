@@ -4,11 +4,6 @@ import { createEmployee } from '../../../server/employee/employee';
 import { createClient } from '../../../server/client/client';
 
 
-
-
-
-
-
 const onFinishFailed = (errorInfo: any) => {
   console.log('Failed:', errorInfo);
 };
@@ -16,26 +11,30 @@ const onFinishFailed = (errorInfo: any) => {
 
 
 
-
 const AdminClientRegister: React.FC = () => {
     const formRef:any = React.useRef<FormInstance>(null);
 
+    const [loading, setLoading] = React.useState(false)
+
     const onFinish = async(values: any) => {
+      setLoading(false)
         try {
-          console.log(1);
           const employee = await createClient({...values,role:"client"}).then((response: any)=>{
            messageApi.success({
             type:"success",
             content:"Registration success"
            });
+           setLoading(false)
             formRef.current?.resetFields();
           }).catch((err)=>{
             messageApi.error({
                 type:"error",
                 content:"Registration unsuccessfull "
                });
+               setLoading(false)
           })
         } catch (error) {
+          setLoading(false)
           console.log("Error occured ==> ",error)
         }
       };
@@ -92,7 +91,7 @@ return (
 
 
     <Form.Item wrapperCol={{ offset: 8, span: 16 }}>
-      <Button type="primary" htmlType="submit">
+      <Button type="primary" htmlType="submit" block loading={loading}>
         Submit
       </Button>
     </Form.Item>

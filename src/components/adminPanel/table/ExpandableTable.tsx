@@ -8,6 +8,7 @@ import ClientWorkInfo from '../../client/ClientWorkInfo';
 const ExpandableTable: React.FC = () => {
 const [employeeDetail, setEmployeeDetail] = React.useState([])
 const [data, setData] = React.useState([])
+const [loading, setLoading] = React.useState(false)
 interface DataType {
     _id: React.Key;
     name: string;
@@ -18,12 +19,16 @@ interface DataType {
   ]
 
   React.useEffect(() => {
+    setLoading(true)
     try {
         const getEmploye = getAllClient().then((response: any)=>{
             console.log("response",response)
             setData(response.payload)
+            setLoading(false)
+
         })
     } catch (error) {
+      setLoading(false)
         console.log("Dashboard error ==> ",error.message);
     }
   }, [])
@@ -42,12 +47,15 @@ interface DataType {
         <Table
           columns={columns}
           rowKey={(record) => record._id}
+          style={{width:'100%'}}
           expandable={{
-            expandedRowRender: (record) => <p key={record._id} style={{ margin: 0 }}> <ClientWorkInfo employId={record._id}/></p>,
+            expandedRowRender: (record) => <p key={record._id} style={{ width:'50%',margin:0}}> <ClientWorkInfo employId={record._id}/></p>,
             // onExpandedRowsChange:(record=>console.log("P",record))
             // rowExpandable: (record) => record.name !== 'Not Expandable',
           }}
+          scroll={{x:100}}
           dataSource={data}
+          loading={loading}
         />
       );
 }

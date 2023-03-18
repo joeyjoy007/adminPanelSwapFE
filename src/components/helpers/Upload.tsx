@@ -20,7 +20,8 @@ const UploadF: React.FC | any= ({item}:any) => {
 
     axios({
       method: "patch",
-      url: 'http://localhost:8080/createWork/u',
+      url: 'https://arceditz.onrender.com/createWork/u',
+      // url: 'http://192.168.233.78:8080/createWork/u',
       data: formData,
       headers: { "Content-Type": "multipart/form-data" },
     })

@@ -19,7 +19,7 @@ const DropDown1 = ({record}) => {
   const y =readWorkData?.map((e:any)=>{
     return {
       label:(
-        <Modal1 name={e} record={record}/>
+        <Modal1 key={e._id} name={e} record={record}/>
       ),
       key:e._id
     }
@@ -31,8 +31,8 @@ const DropDown1 = ({record}) => {
   return (
     <Dropdown menu={{ items }}>
     <a onClick={(e) => e.preventDefault()}>
-      <Space>
-        Select s
+      <Space style={{display:"flex"}}>
+        Select Work
         {/* <DownOutlined /> */}
       </Space>
     </a>
